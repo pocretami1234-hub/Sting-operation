@@ -1,100 +1,212 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sting Operation: Cyber Escape</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Courier New', Courier, monospace; }
+        body { background: #020205; color: #00ffcc; overflow: hidden; }
+        #canvas-game { display: block; }
+        
+        #hud {
+            position: absolute; top: 10px; left: 10px; z-index: 10;
+            background: rgba(5, 5, 10, 0.95); padding: 12px; border-radius: 4px;
+            font-size: 13px; border: 2px solid #ff0055; line-height: 1.5; min-width: 220px;
+            box-shadow: 0 0 10px rgba(255, 0, 85, 0.2);
+        }
+        .bar { background: #111; border-radius: 2px; height: 12px; width: 100px; display: inline-block; overflow: hidden; border: 1px solid #333; }
+        #hp-fill { background: #ff0055; height: 100%; width: 100%; }
+        #bag-fill { background: #00ffcc; height: 100%; width: 0%; }
 
-if (localPlayer.role === 'FUGITIVE' && Math.hypot(localPlayer.x - 300, localPlayer.y - 300) > 350) {
-localPlayer.role = 'SINDICALIST';
-}
-if (localPlayer.role === 'SINDICALIST' && localPlayer.bag === 0) {
-let bq = zones.bov_quimica;
-if (!serverRobberies.bov_quimica?.locked && localPlayer.x > bq.x && localPlayer.x < bq.x+bq.w && localPlayer.y > bq.y && localPlayer.y < bq.y+bq.h) {
-btn.style.display = 'block'; btn.innerText = "Sifonar Compuestos Químicos";
-btn.onclick = () => socket.emit('tryRobbery', 'bov_quimica');
-}
-let fu = zones.fab_uranio;
-if (!serverRobberies.fab_uranio?.locked && localPlayer.x > fu.x && localPlayer.x < fu.x+fu.w && localPlayer.y > fu.y && localPlayer.y < fu.y+fu.h) {
-btn.style.display = 'block'; btn.innerText = "Bypass de Seguridad Digital";
-btn.onclick = () => startPuzzle();
-}
-}
-let vc = zones.volcan;
-if (localPlayer.bag > 0 && localPlayer.x > vc.x && localPlayer.x < vc.x+vc.w && localPlayer.y > vc.y && localPlayer.y < vc.y+vc.h) {
-btn.style.display = 'block'; btn.innerText = "Subir Datos a la Red Oscura";
-btn.onclick = () => { localPlayer.cash += localPlayer.bag; localPlayer.bag = 0; };
-}
-document.getElementById('txt-role').innerText = localPlayer.role === 'FUGITIVE' ? 'Fugitivo' : 'Miembro Sindicato';
-document.getElementById('txt-role').style.color = localPlayer.role === 'FUGITIVE' ? '#ffcc00' : '#00ffcc';
-document.getElementById('txt-cash').innerText = $${localPlayer.cash};
-document.getElementById('bag-fill').style.width = (localPlayer.bag > 0 ? 100 : 0) + '%';
-let cdStr = "";
-let ahora = Date.now();
-for (let k in serverRobberies) {
-if (serverRobberies[k]?.locked) {
-let mins = Math.ceil((serverRobberies[k].cooldownEnd - ahora) / 1000 / 60);
-cdStr += 🔒 ${zones[k].name}: Bloqueado (~${mins} min)<br>;
-} else {
-cdStr += 🔓 ${zones[k].name}: En Línea<br>;
-}
-}
-document.getElementById('cooldowns-info').innerHTML = cdStr;
-}
-function draw() {
-ctx.clearRect(0, 0, canvas.width, canvas.height);
-let camX = canvas.width / 2 - localPlayer.x;
-let camY = canvas.height / 2 - localPlayer.y;
-ctx.save();
-ctx.translate(camX, camY);
-ctx.fillStyle = '#020205';
-ctx.fillRect(0, 0, MAP_SIZE, MAP_SIZE);
-// Rejas perimetrales de estética ciberpunk
-ctx.strokeStyle = '#111122'; ctx.lineWidth = 4;
-ctx.strokeRect(0, 0, MAP_SIZE, MAP_SIZE);
-Object.keys(zones).forEach(k => {
-let z = zones[k];
-if (z.x + z.w + camX > 0 && z.x + camX < canvas.width && z.y + z.h + camY > 0 && z.y + camY < canvas.height) {
-ctx.fillStyle = z.color;
-ctx.fillRect(z.x, z.y, z.w, z.h);
-ctx.strokeStyle = '#ff0055'; ctx.lineWidth = 1; ctx.strokeRect(z.x, z.y, z.w, z.h);
-ctx.fillStyle = '#00ffcc'; ctx.font = 'bold 12px monospace';
-ctx.fillText(:: ${z.name.toUpperCase()} ::, z.x + 15, z.y + 25);
-}
-});
-ctx.fillStyle = vehicleSpawner.color;
-ctx.fillRect(vehicleSpawner.x - 20, vehicleSpawner.y - 12, 40, 24);
-ctx.fillStyle = '#fff'; ctx.font = '9px monospace';
-ctx.fillText("MONTURA [E]", vehicleSpawner.x - 25, vehicleSpawner.y - 18);
-ctx.fillStyle = '#ff0055';
-localProjectiles.forEach(p => { ctx.beginPath(); ctx.arc(p.x, p.y, 4, 0, Math.PI*2); ctx.fill(); });
-Object.keys(remotePlayers).forEach(id => {
-let p = remotePlayers[id];
-ctx.save();
-ctx.translate(p.x, p.y);
-ctx.rotate(p.angle);
-if (p.vehicle) {
-ctx.fillStyle = p.vehicle.color;
-ctx.fillRect(-22, -12, 44, 24);
-} else {
-ctx.fillStyle = p.role === 'FUGITIVE' ? '#ffcc00' : '#00ffcc';
-ctx.beginPath(); ctx.arc(0, 0, 15, 0, Math.PI*2); ctx.fill();
-}
-ctx.restore();
-});
-ctx.save();
-ctx.translate(localPlayer.x, localPlayer.y);
-ctx.rotate(localPlayer.angle);
-if (localPlayer.vehicle) {
-ctx.fillStyle = localPlayer.vehicle.color;
-ctx.fillRect(-22, -12, 44, 24);
-ctx.fillStyle = '#00ffcc'; ctx.fillRect(8, -8, 6, 16);
-} else {
-ctx.fillStyle = localPlayer.role === 'FUGITIVE' ? '#ffcc00' : '#00ffcc';
-ctx.beginPath(); ctx.arc(0, 0, 15, 0, Math.PI*2); ctx.fill();
-ctx.strokeStyle = '#fff'; ctx.lineWidth = 1; ctx.stroke();
-ctx.fillStyle = '#ff0055'; ctx.fillRect(10, -2, 10, 4);
-}
-ctx.restore();
-ctx.restore();
-}
-function mainLoop() {
-update();
-draw();
-requestAnimationFrame(mainLoop);
-}
-mainLoop();
+        #puzzle-box {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: #05050a; border: 3px solid #ff0055; padding: 25px; border-radius: 6px;
+            z-index: 100; text-align: center; display: none; box-shadow: 0 0 30px rgba(255, 0, 85, 0.4);
+        }
+        .node { width: 45px; height: 45px; background: #111; border: 2px solid #333; display: inline-block; margin: 8px; border-radius: 4px; cursor: pointer; line-height: 40px; font-weight: bold; color: #00ffcc; }
+        .node.active { background: #ff0055; color: #fff; border-color: #fff; box-shadow: 0 0 10px #ff0055; }
+        
+        #btn-interact {
+            position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);
+            padding: 12px 30px; font-weight: bold; font-size: 16px; background: #ff0055; color: white;
+            border: none; border-radius: 4px; cursor: pointer; display: none; box-shadow: 0 0 15px #ff0055;
+            text-transform: uppercase;
+        }
+    </style>
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+
+    <div id="hud">
+        <div><b>[ STING OPERATION V1.0 ]</b></div>
+        <div>Estado: <span id="txt-role" style="color:#ffcc00;">FUGITIVO</span></div>
+        <div>Integridad: <div class="bar"><div id="hp-fill"></div></div></div>
+        <div>Carga Cypher: <div class="bar"><div id="bag-fill"></div></div></div>
+        <div>Créditos Net: <span id="txt-cash" style="color:#00ffcc;">$0</span></div>
+        <hr style="margin:6px 0; border-color:#ff0055;">
+        <div id="cooldowns-info" style="font-size:11px; color:#888;"></div>
+    </div>
+
+    <button id="btn-interact">INTERACTUAR</button>
+
+    <div id="puzzle-box">
+        <h3 style="color:#ff0055; margin-bottom:10px;">DESENCRIPTADOR: Puertos Correlativos (1 al 4)</h3>
+        <div id="nodes-container"></div>
+        <p id="puzzle-status" style="margin-top:10px; font-size:12px; color:#ff0055;"></p>
+    </div>
+
+    <canvas id="canvas-game"></canvas>
+
+    <script>
+        const socket = io();
+        const canvas = document.getElementById('canvas-game');
+        const ctx = canvas.getContext('2d');
+        
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        let myId = null;
+        let localPlayer = { x: 200, y: 250, angle: 0, hp: 100, cash: 0, bag: 0, maxBag: 1500, role: 'FUGITIVE', vehicle: null };
+        let remotePlayers = {};
+        let serverRobberies = {};
+        let localProjectiles = [];
+        let networkProjectiles = [];
+
+        const MAP_SIZE = 4000;
+        
+        const zones = {
+            prision: { x: 100, y: 100, w: 400, h: 400, color: '#0d0d1a', name: "Complejo de Retención Alfa" },
+            bov_quimica: { x: 1800, y: 500, w: 350, h: 300, color: '#051a15', name: "Almacén de Fluidos Sintéticos" },
+            fab_uranio: { x: 2800, y: 2200, w: 400, h: 350, color: '#1a0515', name: "Nexo de Datos Encriptados" },
+            volcan: { x: 1500, y: 3200, w: 500, h: 400, color: '#1a1005', name: "Guarida del Sindicato Underground" }
+        };
+
+        const vehicleSpawner = { x: 450, y: 450, name: "Deslizador Cyber-Grid", color: "#ff0055" };
+
+        socket.on('init', (data) => {
+            myId = data.id;
+            serverRobberies = data.robberies;
+            if(data.players[myId]) localPlayer.cash = data.players[myId].cash;
+            Object.keys(data.players).forEach(id => {
+                if(id !== myId) remotePlayers[id] = data.players[id];
+            });
+        });
+
+        socket.on('newPlayer', (player) => { remotePlayers[player.id] = player; });
+        socket.on('playerMoved', (player) => { if(remotePlayers[player.id]) remotePlayers[player.id] = player; });
+        socket.on('playerDisconnected', (id) => { delete remotePlayers[id]; });
+        
+        socket.on('robberyStarted', (data) => {
+            serverRobberies[data.zoneId].locked = true;
+            serverRobberies[data.zoneId].cooldownEnd = data.cooldownEnd;
+        });
+        socket.on('robberyReset', (zoneId) => {
+            serverRobberies[zoneId].locked = false;
+            alert(`¡Alerta! El sector [${zones[zoneId].name}] se ha restablecido.`);
+        });
+        socket.on('robberySuccess', (value) => {
+            localPlayer.bag = value;
+            localPlayer.role = 'SINDICALIST';
+            alert("¡Hackeo completado! Información robada en tu dispositivo. Transfiérela en la Guarida.");
+        });
+
+        socket.on('enemyProjectile', (p) => { networkProjectiles.push(p); });
+
+        const keys = {};
+        let mouseX = 0, mouseY = 0;
+        window.addEventListener('keydown', e => { keys[e.key.toLowerCase()] = true; handleInteractions(e.key); });
+        window.addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false; });
+        window.addEventListener('mousemove', e => { mouseX = e.clientX; mouseY = e.clientY; });
+        window.addEventListener('mousedown', e => { if(e.button === 0 && !puzzleActive) shoot(); });
+
+        function handleInteractions(key) {
+            if (key.toLowerCase() === 'e') {
+                if (localPlayer.vehicle) {
+                    localPlayer.vehicle = null;
+                } else {
+                    let d = Math.hypot(localPlayer.x - vehicleSpawner.x, localPlayer.y - vehicleSpawner.y);
+                    if (d < 60) localPlayer.vehicle = { name: vehicleSpawner.name, color: vehicleSpawner.color, speed: 9.5 };
+                }
+            }
+        }
+
+        function shoot() {
+            let sX = canvas.width / 2; let sY = canvas.height / 2;
+            let angle = Math.atan2(mouseY - sY, mouseX - sX);
+            let proj = { x: localPlayer.x, y: localPlayer.y, vx: Math.cos(angle)*15, vy: Math.sin(angle)*15, life: 50 };
+            localProjectiles.push(proj);
+            socket.emit('fireProjectile', { x: proj.x, y: proj.y, vx: proj.vx, vy: proj.vy });
+        }
+
+        let puzzleActive = false;
+        let puzzleSequence = [];
+        let playerClicks = [];
+
+        function startPuzzle() {
+            puzzleActive = true;
+            document.getElementById('puzzle-box').style.display = 'block';
+            document.getElementById('puzzle-status').innerText = "";
+            playerClicks = [];
+            puzzleSequence = Array.from({length: 4}, (_, i) => i + 1).sort(() => Math.random() - 0.5);
+            
+            const container = document.getElementById('nodes-container');
+            container.innerHTML = "";
+            
+            puzzleSequence.forEach(num => {
+                let btn = document.createElement('div');
+                btn.className = 'node';
+                btn.innerText = num;
+                btn.onclick = () => {
+                    if(btn.classList.contains('active')) return;
+                    btn.classList.add('active');
+                    playerClicks.push(num);
+                    checkPuzzleProgress();
+                };
+                container.appendChild(btn);
+            });
+        }
+
+        function checkPuzzleProgress() {
+            let currentIdx = playerClicks.length - 1;
+            if (playerClicks[currentIdx] !== playerClicks.length) {
+                document.getElementById('puzzle-status').innerText = "¡CORTOCIRCUITO! Reestableciendo cortafuegos...";
+                setTimeout(startPuzzle, 1000);
+                return;
+            }
+            if (playerClicks.length === 4) {
+                document.getElementById('puzzle-box').style.display = 'none';
+                puzzleActive = false;
+                socket.emit('tryRobbery', 'fab_uranio');
+            }
+        }
+
+        function update() {
+            if (puzzleActive) return;
+
+            let currentSpeed = localPlayer.vehicle ? localPlayer.vehicle.speed : 4.5;
+            if (keys['w']) localPlayer.y -= currentSpeed;
+            if (keys['s']) localPlayer.y += currentSpeed;
+            if (keys['a']) localPlayer.x -= currentSpeed;
+            if (keys['d']) localPlayer.x += currentSpeed;
+
+            localPlayer.x = Math.max(20, Math.min(MAP_SIZE - 20, localPlayer.x));
+            localPlayer.y = Math.max(20, Math.min(MAP_SIZE - 20, localPlayer.y));
+
+            localPlayer.angle = Math.atan2(mouseY - canvas.height/2, mouseX - canvas.width/2);
+
+            socket.emit('playerUpdate', {
+                x: localPlayer.x, y: localPlayer.y, angle: localPlayer.angle,
+                vehicle: localPlayer.vehicle, bag: localPlayer.bag, role: localPlayer.role
+            });
+
+            localProjectiles.forEach((p, idx) => {
+                p.x += p.vx; p.y += p.vy; p.life--;
+                if(p.life <= 0) localProjectiles.splice(idx, 1);
+            });
+
+            let btn = document.getElementById('btn-interact');
+            btn.style.display = 'none';
+
+            if (localPlayer.role === 'FUGITIVE' && Math.hypot(localPlayer.x - 300, localPlayer.y - 300) > 350) {
+                localPlayer.role = 'SINDICALIST';
