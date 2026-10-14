@@ -20,7 +20,7 @@
         #hp-fill { background: #ff0055; height: 100%; width: 100%; }
         #bag-fill { background: #00ffcc; height: 100%; width: 0%; }
 
-        /* Pantalla de Selección de Bando */
+        /* Pantalla de Selección de Bando Activa */
         #team-select {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
             background: rgba(5, 5, 12, 0.95); border: 2px solid #ff0055; padding: 40px;
@@ -29,7 +29,9 @@
         .team-btn {
             padding: 15px 30px; font-size: 16px; font-weight: bold; margin: 15px;
             border: none; border-radius: 4px; cursor: pointer; text-transform: uppercase;
+            transition: transform 0.1s ease, background 0.2s;
         }
+        .team-btn:hover { transform: scale(1.05); }
         #btn-fugitive { background: #ffcc00; color: #000; box-shadow: 0 0 15px #ffcc00; }
         #btn-agent { background: #0055ff; color: #fff; box-shadow: 0 0 15px #0055ff; }
 
@@ -53,7 +55,7 @@
 </head>
 <body>
 
-    <!-- Selector de Equipos Inicial -->
+    <!-- Menú de Selección -->
     <div id="team-select">
         <h2 style="color: #ff0055; margin-bottom: 20px; letter-spacing: 2px;">SELECCIÓN DE OPERATIVO</h2>
         <button id="btn-fugitive" class="team-btn">Fugitivo (Escapa y Roba)</button>
@@ -110,9 +112,9 @@
         let prisonEscaped = false;
         let droppedKeycards = [];
 
-        // --- MANEJO DE SELECCIÓN DE EQUIPOS ---
-        document.getElementById('btn-fugitive').onclick = () => { selectTeam('FUGITIVE', 250, 250); };
-        document.getElementById('btn-agent').onclick = () => { selectTeam('AGENT', 1900, 600); };
+        // 🛠️ CAPTURA DE CLICS EN LOS BOTONES DE BANDO
+        document.getElementById('btn-fugitive').addEventListener('click', () => { selectTeam('FUGITIVE', 250, 250); });
+        document.getElementById('btn-agent').addEventListener('click', () => { selectTeam('AGENT', 1900, 600); });
 
         function selectTeam(team, spawnX, spawnY) {
             localPlayer.role = team;
@@ -122,7 +124,6 @@
             document.getElementById('team-select').style.display = 'none';
             document.getElementById('hud').style.display = 'block';
 
-            // Ocultar elementos innecesarios para el policía
             if(team === 'AGENT') {
                 document.getElementById('hud-bag-container').style.display = 'none';
                 document.getElementById('hud-keycard-container').style.display = 'none';
@@ -164,7 +165,11 @@
         window.addEventListener('keydown', e => { if(gameStarted) keys[e.key.toLowerCase()] = true; handleInteractions(e.key); });
         window.addEventListener('keyup', e => { if(gameStarted) keys[e.key.toLowerCase()] = false; });
         window.addEventListener('mousemove', e => { mouseX = e.clientX; mouseY = e.clientY; });
-        window.addEventListener('mousedown', e => { if(gameStarted && e.button === 0 && !puzzleActive) shoot(); });
+        
+        // 🛠️ GATILLO: DISPARAR ARMAS CON CLIC IZQUIERDO DEL MOUSE
+        window.addEventListener('mousedown', e => { 
+            if(gameStarted && e.button === 0 && !puzzleActive) shoot(); 
+        });
 
         function handleInteractions(key) {
             if (!gameStarted || key.toLowerCase() !== 'e') return;
@@ -188,16 +193,14 @@
             let angle = Math.atan2(mouseY - sY, mouseX - sX);
             let colorProj = localPlayer.role === 'AGENT' ? '#0055ff' : '#ff0055';
             let proj = { x: localPlayer.x, y: localPlayer.y, vx: Math.cos(angle)*15, vy: Math.sin(angle)*15, life: 50, color: colorProj, team: localPlayer.role };
-            localProjectiles.push(proj);
-            socket.emit('fireProjectile', { x: proj.x, y: proj.y, vx: proj.vx, vy: proj.vy, color: colorProj, team: localPlayer.role });
-        }
-
-        // --- SISTEMA DE PUZLES ---
-        let puzzleActive = false;
-        let puzzleSequence = [];
-        let playerClicks = [];
-        let currentPuzzleType = "";
-        function startPuzzle(type) {
+            localProjectiles.push(proj);socket.emit('fireProjectile', { x: proj.x, y: proj.y, vx: proj.vx, vy: proj.vy, color: colorProj, team: localPlayer.role });
+}
+// --- SISTEMA DE PUZLES ---
+let puzzleActive = false;
+let puzzleSequence = [];
+let playerClicks = [];
+let currentPuzzleType = "";
+function startPuzzle(type) {
 puzzleActive = true; currentPuzzleType = type;
 document.getElementById('puzzle-box').style.display = 'block';
 document.getElementById('puzzle-status').innerText = "";
@@ -256,20 +259,11 @@ socket.emit('playerUpdate', {
 x: localPlayer.x, y: localPlayer.y, angle: localPlayer.angle,
 vehicle: localPlayer.vehicle, bag: localPlayer.bag, role: localPlayer.role
 });
-// Procesar tus balas y comprobar impactos contra enemigos reales (PVP)
 localProjectiles.forEach((p, idx) => {
 p.x += p.vx; p.y += p.vy; p.life--;
 if(p.life <= 0) localProjectiles.splice(idx, 1);
-Object.keys(remotePlayers).forEach(id => {
-let enemy = remotePlayers[id];
-// Si la bala impacta a un jugador del equipo contrario
-if(enemy.role !== localPlayer.role && Math.hypot(p.x - enemy.x, p.y - enemy.y) < 20) {
-localProjectiles.splice(idx, 1);
-// El daño e impactos se procesan de forma sincronizada en cada pantalla cliente
-}
 });
-});
-// Procesar balas enemigas de otros jugadores hacia ti (PVP)
+// Procesar impactos de proyectiles en red (PVP)
 networkProjectiles.forEach((p, idx) => {
 p.x += p.vx; p.y += p.vy; p.life--;
 if(p.life <= 0) networkProjectiles.splice(idx, 1);
@@ -289,14 +283,6 @@ if(localPlayer.vehicle) localPlayer.vehicle = null;
 }
 }
 });
-// Recoger tarjetas del suelo (si un fugitivo mata a un policía y este suelta tarjeta)
-droppedKeycards.forEach((card, idx) => {
-if(localPlayer.role === 'FUGITIVE' && Math.hypot(localPlayer.x - card.x, localPlayer.y - card.y) < 30) {
-localPlayer.hasKeycard = true; droppedKeycards.splice(idx, 1);
-alert("¡Has recogido la Keycard del Agente abatido! Salida libre.");
-}
-});
-// Control de interfaces flotantes de proximidad
 let btn = document.getElementById('btn-interact'); btn.style.display = 'none';
 if (localPlayer.role === 'FUGITIVE') {
 if (!prisonEscaped && !localPlayer.hasKeycard) {
@@ -326,7 +312,6 @@ btn.style.display = 'block'; btn.innerText = "Subir Datos a la Red Oscura";
 btn.onclick = () => { localPlayer.cash += localPlayer.bag; localPlayer.bag = 0; };
 }
 }
-// HUD dinámico según el equipo
 if(localPlayer.role === 'AGENT') {
 document.getElementById('txt-role').innerText = 'Agente de Seguridad';
 document.getElementById('txt-role').style.color = '#0055ff';
@@ -345,7 +330,6 @@ ctx.clearRect(0, 0, canvas.width, canvas.height);
 let camX = canvas.width / 2 - localPlayer.x; let camY = canvas.height / 2 - localPlayer.y;
 ctx.save(); ctx.translate(camX, camY);
 ctx.fillStyle = '#020205'; ctx.fillRect(0, 0, MAP_SIZE, MAP_SIZE);
-// Dibujar Estructuras y Sectores
 Object.keys(zones).forEach(k => {
 let z = zones[k];
 ctx.fillStyle = z.color; ctx.fillRect(z.x, z.y, z.w, z.h);
@@ -354,12 +338,9 @@ ctx.lineWidth = 3; ctx.strokeRect(z.x, z.y, z.w, z.h);
 ctx.fillStyle = '#00ffcc'; ctx.font = 'bold 12px monospace';
 ctx.fillText(:: ${z.name.toUpperCase()} ::, z.x + 15, z.y + 25);
 });
-// Dibujar Spawner Vehículo
 ctx.fillStyle = vehicleSpawner.color; ctx.fillRect(vehicleSpawner.x - 20, vehicleSpawner.y - 12, 40, 24);
-// Proyectiles en movimiento
 localProjectiles.forEach(p => { ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x, p.y, 4, 0, Math.PI2); ctx.fill(); });
 networkProjectiles.forEach(p => { ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x, p.y, 4, 0, Math.PI2); ctx.fill(); });
-// Dibujar Otros Jugadores en Red (Remotos)
 Object.keys(remotePlayers).forEach(id => {
 let p = remotePlayers[id];
 if (p.role === 'PENDING') return;
@@ -369,11 +350,10 @@ ctx.fillStyle = p.vehicle.color; ctx.fillRect(-22, -12, 44, 24);
 } else {
 ctx.fillStyle = p.role === 'AGENT' ? '#0055ff' : '#ffcc00';
 ctx.beginPath(); ctx.arc(0, 0, 15, 0, Math.PI*2); ctx.fill();
-ctx.fillStyle = '#fff'; ctx.fillRect(8, -2, 6, 4); // Arma orientativa
+ctx.fillStyle = '#fff'; ctx.fillRect(8, -2, 6, 4);
 }
 ctx.restore();
 });
-// Dibujar tu Jugador Local
 ctx.save(); ctx.translate(localPlayer.x, localPlayer.y); ctx.rotate(localPlayer.angle);
 if (localPlayer.vehicle) {
 ctx.fillStyle = localPlayer.vehicle.color; ctx.fillRect(-22, -12, 44, 24);
@@ -381,7 +361,7 @@ ctx.fillStyle = localPlayer.vehicle.color; ctx.fillRect(-22, -12, 44, 24);
 ctx.fillStyle = localPlayer.role === 'AGENT' ? '#0055ff' : '#ffcc00';
 ctx.beginPath(); ctx.arc(0, 0, 15, 0, Math.PI*2); ctx.fill();
 ctx.strokeStyle = '#fff'; ctx.lineWidth = 1; ctx.stroke();
-ctx.fillStyle = '#ff0055'; ctx.fillRect(10, -2, 10, 4); // Cañón láser
+ctx.fillStyle = '#ff0055'; ctx.fillRect(10, -2, 10, 4);
 }
 ctx.restore(); ctx.restore();
 }
