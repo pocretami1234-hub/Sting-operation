@@ -9,16 +9,31 @@
         body { background: #020205; color: #00ffcc; overflow: hidden; }
         #canvas-game { display: block; }
         
+        /* HUD Superior */
         #hud {
             position: absolute; top: 10px; left: 10px; z-index: 10;
             background: rgba(5, 5, 10, 0.95); padding: 12px; border-radius: 4px;
-            font-size: 13px; border: 2px solid #ff0055; line-height: 1.5; min-width: 220px;
-            box-shadow: 0 0 10px rgba(255, 0, 85, 0.2);
+            font-size: 13px; border: 2px solid #ff0055; line-height: 1.5; min-width: 240px;
+            box-shadow: 0 0 10px rgba(255, 0, 85, 0.2); display: none;
         }
         .bar { background: #111; border-radius: 2px; height: 12px; width: 100px; display: inline-block; overflow: hidden; border: 1px solid #333; }
         #hp-fill { background: #ff0055; height: 100%; width: 100%; }
         #bag-fill { background: #00ffcc; height: 100%; width: 0%; }
 
+        /* Pantalla de Selección de Bando */
+        #team-select {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: rgba(5, 5, 12, 0.95); border: 2px solid #ff0055; padding: 40px;
+            border-radius: 8px; text-align: center; z-index: 200; box-shadow: 0 0 30px rgba(255,0,85,0.4);
+        }
+        .team-btn {
+            padding: 15px 30px; font-size: 16px; font-weight: bold; margin: 15px;
+            border: none; border-radius: 4px; cursor: pointer; text-transform: uppercase;
+        }
+        #btn-fugitive { background: #ffcc00; color: #000; box-shadow: 0 0 15px #ffcc00; }
+        #btn-agent { background: #0055ff; color: #fff; box-shadow: 0 0 15px #0055ff; }
+
+        /* Panel de Puzles */
         #puzzle-box {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
             background: #05050a; border: 3px solid #ff0055; padding: 25px; border-radius: 6px;
@@ -34,17 +49,24 @@
             text-transform: uppercase;
         }
     </style>
-    <!-- Módulos de red optimizados -->
     <script src="https://socket.io"></script>
 </head>
 <body>
 
+    <!-- Selector de Equipos Inicial -->
+    <div id="team-select">
+        <h2 style="color: #ff0055; margin-bottom: 20px; letter-spacing: 2px;">SELECCIÓN DE OPERATIVO</h2>
+        <button id="btn-fugitive" class="team-btn">Fugitivo (Escapa y Roba)</button>
+        <button id="btn-agent" class="team-btn">Agente (Defiende y Caza)</button>
+    </div>
+
     <div id="hud">
-        <div><b>[ STING OPERATION V1.0 ]</b></div>
-        <div>Estado: <span id="txt-role" style="color:#ffcc00;">FUGITIVO</span></div>
+        <div><b>[ STING OPERATION V2.5 ]</b></div>
+        <div>Rol: <span id="txt-role" style="color:#ffcc00;">SELECCIONANDO...</span></div>
         <div>Integridad: <div class="bar"><div id="hp-fill"></div></div></div>
-        <div>Carga Cypher: <div class="bar"><div id="bag-fill"></div></div></div>
-        <div>Créditos Net: <span id="txt-cash" style="color:#00ffcc;">$0</span></div>
+        <div id="hud-bag-container">Mochila Cypher: <div class="bar"><div id="bag-fill"></div></div></div>
+        <div id="hud-cash-container">Créditos Net: <span id="txt-cash" style="color:#00ffcc;">$0</span></div>
+        <div id="hud-keycard-container">Keycard Encriptada: <span id="txt-keycard" style="color:#ff0055;">NO</span></div>
         <hr style="margin:6px 0; border-color:#ff0055;">
         <div id="cooldowns-info" style="font-size:11px; color:#888;"></div>
     </div>
@@ -52,7 +74,7 @@
     <button id="btn-interact">INTERACTUAR</button>
 
     <div id="puzzle-box">
-        <h3 style="color:#ff0055; margin-bottom:10px;">DESENCRIPTADOR: Puertos Correlativos (1 al 4)</h3>
+        <h3 id="puzzle-title" style="color:#ff0055; margin-bottom:10px;">HACKEO ELECTRÓNICO</h3>
         <div id="nodes-container"></div>
         <p id="puzzle-status" style="margin-top:10px; font-size:12px; color:#ff0055;"></p>
     </div>
@@ -60,7 +82,6 @@
     <canvas id="canvas-game"></canvas>
 
     <script>
-        // Enlace forzado a tu servidor actual
         const socket = io();
         const canvas = document.getElementById('canvas-game');
         const ctx = canvas.getContext('2d');
@@ -69,7 +90,8 @@
         canvas.height = window.innerHeight;
 
         let myId = null;
-        let localPlayer = { x: 200, y: 250, angle: 0, hp: 100, cash: 0, bag: 0, maxBag: 1500, role: 'FUGITIVE', vehicle: null };
+        let gameStarted = false;
+        let localPlayer = { x: 250, y: 250, angle: 0, hp: 100, cash: 0, bag: 0, maxBag: 1500, role: 'PENDING', vehicle: null, hasKeycard: false };
         let remotePlayers = {};
         let serverRobberies = {};
         let localProjectiles = [];
@@ -79,19 +101,37 @@
         
         const zones = {
             prision: { x: 100, y: 100, w: 400, h: 400, color: '#0d0d1a', name: "Complejo de Retención Alfa" },
-            bov_quimica: { x: 1800, y: 500, w: 350, h: 300, color: '#051a15', name: "Almacén de Fluidos Sintéticos" },
-            fab_uranio: { x: 2800, y: 2200, w: 400, h: 350, color: '#1a0515', name: "Nexo de Datos Encriptados" },
+            bov_quimica: { x: 1800, y: 500, w: 350, h: 300, color: '#051a15', name: "Nexo Financiero (Cripto Bóveda)" },
+            fab_uranio: { x: 2800, y: 2200, w: 400, h: 350, color: '#1a0515', name: "Sindicato de Alta Costura (Nano Textiles)" },
             volcan: { x: 1500, y: 3200, w: 500, h: 400, color: '#1a1005', name: "Guarida del Sindicato Underground" }
         };
 
         const vehicleSpawner = { x: 450, y: 450, name: "Deslizador Cyber-Grid", color: "#ff0055" };
+        let prisonEscaped = false;
+        let droppedKeycards = [];
 
-        socket.on('connect', () => { console.log("Conectado con éxito a la red táctica."); });
+        // --- MANEJO DE SELECCIÓN DE EQUIPOS ---
+        document.getElementById('btn-fugitive').onclick = () => { selectTeam('FUGITIVE', 250, 250); };
+        document.getElementById('btn-agent').onclick = () => { selectTeam('AGENT', 1900, 600); };
+
+        function selectTeam(team, spawnX, spawnY) {
+            localPlayer.role = team;
+            localPlayer.x = spawnX;
+            localPlayer.y = spawnY;
+            gameStarted = true;
+            document.getElementById('team-select').style.display = 'none';
+            document.getElementById('hud').style.display = 'block';
+
+            // Ocultar elementos innecesarios para el policía
+            if(team === 'AGENT') {
+                document.getElementById('hud-bag-container').style.display = 'none';
+                document.getElementById('hud-keycard-container').style.display = 'none';
+            }
+        }
 
         socket.on('init', (data) => {
             myId = data.id;
             serverRobberies = data.robberies;
-            if(data.players[myId]) localPlayer.cash = data.players[myId].cash;
             Object.keys(data.players).forEach(id => {
                 if(id !== myId) remotePlayers[id] = data.players[id];
             });
@@ -111,27 +151,34 @@
             if(serverRobberies[zoneId]) serverRobberies[zoneId].locked = false;
         });
         socket.on('robberySuccess', (value) => {
-            localPlayer.bag = value;
-            localPlayer.role = 'SINDICALIST';
-            alert("¡Hackeo completado! Información recolectada. Asegúrala en la Guarida.");
+            if(localPlayer.role !== 'AGENT') {
+                localPlayer.bag = value;
+                alert("¡Carga Cypher recolectada! Llévala a la Guarida.");
+            }
         });
 
         socket.on('enemyProjectile', (p) => { networkProjectiles.push(p); });
 
         const keys = {};
         let mouseX = 0, mouseY = 0;
-        window.addEventListener('keydown', e => { keys[e.key.toLowerCase()] = true; handleInteractions(e.key); });
-        window.addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false; });
+        window.addEventListener('keydown', e => { if(gameStarted) keys[e.key.toLowerCase()] = true; handleInteractions(e.key); });
+        window.addEventListener('keyup', e => { if(gameStarted) keys[e.key.toLowerCase()] = false; });
         window.addEventListener('mousemove', e => { mouseX = e.clientX; mouseY = e.clientY; });
-        window.addEventListener('mousedown', e => { if(e.button === 0 && !puzzleActive) shoot(); });
+        window.addEventListener('mousedown', e => { if(gameStarted && e.button === 0 && !puzzleActive) shoot(); });
 
         function handleInteractions(key) {
-            if (key.toLowerCase() === 'e') {
-                if (localPlayer.vehicle) {
-                    localPlayer.vehicle = null;
-                } else {
-                    let d = Math.hypot(localPlayer.x - vehicleSpawner.x, localPlayer.y - vehicleSpawner.y);
-                    if (d < 60) localPlayer.vehicle = { name: vehicleSpawner.name, color: vehicleSpawner.color, speed: 9.5 };
+            if (!gameStarted || key.toLowerCase() !== 'e') return;
+            if (localPlayer.vehicle) {
+                localPlayer.vehicle = null;
+            } else {
+                if (localPlayer.role === 'FUGITIVE' && !prisonEscaped && !localPlayer.hasKeycard) {
+                    alert("🔒 El Deslizador está protegido por cortafuegos. Hackea los cables primero.");
+                    return;
+                }
+                let d = Math.hypot(localPlayer.x - vehicleSpawner.x, localPlayer.y - vehicleSpawner.y);
+                if (d < 60) {
+                    localPlayer.vehicle = { name: vehicleSpawner.name, color: vehicleSpawner.color, speed: 9.5 };
+                    if(localPlayer.role === 'FUGITIVE') prisonEscaped = true;
                 }
             }
         }
@@ -139,91 +186,138 @@
         function shoot() {
             let sX = canvas.width / 2; let sY = canvas.height / 2;
             let angle = Math.atan2(mouseY - sY, mouseX - sX);
-            let proj = { x: localPlayer.x, y: localPlayer.y, vx: Math.cos(angle)*15, vy: Math.sin(angle)*15, life: 50 };
+            let colorProj = localPlayer.role === 'AGENT' ? '#0055ff' : '#ff0055';
+            let proj = { x: localPlayer.x, y: localPlayer.y, vx: Math.cos(angle)*15, vy: Math.sin(angle)*15, life: 50, color: colorProj, team: localPlayer.role };
             localProjectiles.push(proj);
-            socket.emit('fireProjectile', { x: proj.x, y: proj.y, vx: proj.vx, vy: proj.vy });
+            socket.emit('fireProjectile', { x: proj.x, y: proj.y, vx: proj.vx, vy: proj.vy, color: colorProj, team: localPlayer.role });
         }
 
+        // --- SISTEMA DE PUZLES ---
         let puzzleActive = false;
         let puzzleSequence = [];
         let playerClicks = [];
-
-        function startPuzzle() {
-            puzzleActive = true;
-            document.getElementById('puzzle-box').style.display = 'block';
-            document.getElementById('puzzle-status').innerText = "";
-            playerClicks = [];
-            puzzleSequence = Array.from({length: 4}, (_, i) => i + 1).sort(() => Math.random() - 0.5);
-            
-            const container = document.getElementById('nodes-container');
-            container.innerHTML = "";
-            
-            puzzleSequence.forEach(num => {
-                let btn = document.createElement('div');
-                btn.className = 'node';
-                btn.innerText = num;
-                btn.onclick = () => {
-                    if(btn.classList.contains('active')) return;
-                    btn.classList.add('active');
-                    playerClicks.push(num);
-                    checkPuzzleProgress();
-                };
-                container.appendChild(btn);
-            });
-        }
-
-        function checkPuzzleProgress() {
-            let currentIdx = playerClicks.length - 1;
-            if (playerClicks[currentIdx] !== playerClicks.length) {
-                document.getElementById('puzzle-status').innerText = "¡CORTOCIRCUITO! Reiniciando...";
-                setTimeout(startPuzzle, 1000);
-                return;
-            }
-            if (playerClicks.length === 4) {
-                document.getElementById('puzzle-box').style.display = 'none';
-                puzzleActive = false;
-                socket.emit('tryRobbery', 'fab_uranio');
-            }
-        }
-
-        function update() {
-            if (puzzleActive) return;
-
-            let currentSpeed = localPlayer.vehicle ? localPlayer.vehicle.speed : 4.5;
-            if (keys['w']) localPlayer.y -= currentSpeed;
-            if (keys['s']) localPlayer.y += currentSpeed;
-            if (keys['a']) localPlayer.x -= currentSpeed;
-            if (keys['d']) localPlayer.x += currentSpeed;
-
-            localPlayer.x = Math.max(20, Math.min(MAP_SIZE - 20, localPlayer.x));
-            localPlayer.y = Math.max(20, Math.min(MAP_SIZE - 20, localPlayer.y));
-
-            localPlayer.angle = Math.atan2(mouseY - canvas.height/2, mouseX - canvas.width/2);
-
-            socket.emit('playerUpdate', {
-                x: localPlayer.x, y: localPlayer.y, angle: localPlayer.angle,
-                vehicle: localPlayer.vehicle, bag: localPlayer.bag, role: localPlayer.role
-            });
-
-            localProjectiles.forEach((p, idx) => {
-                p.x += p.vx; p.y += p.vy; p.life--;
-                if(p.life <= 0) localProjectiles.splice(idx, 1);
-            });
-            let btn = document.getElementById('btn-interact');
-btn.style.display = 'none';
-if (localPlayer.role === 'FUGITIVE' && Math.hypot(localPlayer.x - 300, localPlayer.y - 300) > 350) {
-localPlayer.role = 'SINDICALIST';
+        let currentPuzzleType = "";
+        function startPuzzle(type) {
+puzzleActive = true; currentPuzzleType = type;
+document.getElementById('puzzle-box').style.display = 'block';
+document.getElementById('puzzle-status').innerText = "";
+document.getElementById('puzzle-title').innerText = type === "PRISON" ? "CORTAR FUSIBLES (1 al 4)" : "BYPASS DE ENCRIPCION (1 al 4)";
+playerClicks = [];
+puzzleSequence = Array.from({length: 4}, (_, i) => i + 1).sort(() => Math.random() - 0.5);
+const container = document.getElementById('nodes-container'); container.innerHTML = "";
+puzzleSequence.forEach(num => {
+let btn = document.createElement('div'); btn.className = 'node'; btn.innerText = num;
+btn.onclick = () => {
+if(btn.classList.contains('active')) return;
+btn.classList.add('active'); playerClicks.push(num); checkPuzzleProgress();
+};
+container.appendChild(btn);
+});
 }
-if (localPlayer.role === 'SINDICALIST' && localPlayer.bag === 0) {
+function checkPuzzleProgress() {
+let currentIdx = playerClicks.length - 1;
+if (playerClicks[currentIdx] !== playerClicks.length) {
+document.getElementById('puzzle-status').innerText = "¡ERROR!";
+setTimeout(() => startPuzzle(currentPuzzleType), 1000); return;
+}
+if (playerClicks.length === 4) {
+document.getElementById('puzzle-box').style.display = 'none'; puzzleActive = false;
+if(currentPuzzleType === "PRISON") {
+prisonEscaped = true; alert("⚡ Cables cortados. Perímetro desbloqueado.");
+} else {
+socket.emit('tryRobbery', 'fab_uranio');
+}
+}
+}
+function checkWallCollisions(oldX, oldY) {
+let radius = 15;
+Object.keys(zones).forEach(k => {
+let z = zones[k];
+if (k === 'prision' && (prisonEscaped || localPlayer.hasKeycard || localPlayer.role === 'AGENT')) return;
+if (localPlayer.x + radius > z.x && localPlayer.x - radius < z.x + z.w &&
+localPlayer.y + radius > z.y && localPlayer.y - radius < z.y + z.h) {
+localPlayer.x = oldX; localPlayer.y = oldY;
+}
+});
+}
+function update() {
+if (!gameStarted || puzzleActive) return;
+let oldX = localPlayer.x; let oldY = localPlayer.y;
+let currentSpeed = localPlayer.vehicle ? localPlayer.vehicle.speed : 4.5;
+if (keys['w']) localPlayer.y -= currentSpeed;
+if (keys['s']) localPlayer.y += currentSpeed;
+if (keys['a']) localPlayer.x -= currentSpeed;
+if (keys['d']) localPlayer.x += currentSpeed;
+localPlayer.x = Math.max(20, Math.min(MAP_SIZE - 20, localPlayer.x));
+localPlayer.y = Math.max(20, Math.min(MAP_SIZE - 20, localPlayer.y));
+checkWallCollisions(oldX, oldY);
+localPlayer.angle = Math.atan2(mouseY - canvas.height/2, mouseX - canvas.width/2);
+socket.emit('playerUpdate', {
+x: localPlayer.x, y: localPlayer.y, angle: localPlayer.angle,
+vehicle: localPlayer.vehicle, bag: localPlayer.bag, role: localPlayer.role
+});
+// Procesar tus balas y comprobar impactos contra enemigos reales (PVP)
+localProjectiles.forEach((p, idx) => {
+p.x += p.vx; p.y += p.vy; p.life--;
+if(p.life <= 0) localProjectiles.splice(idx, 1);
+Object.keys(remotePlayers).forEach(id => {
+let enemy = remotePlayers[id];
+// Si la bala impacta a un jugador del equipo contrario
+if(enemy.role !== localPlayer.role && Math.hypot(p.x - enemy.x, p.y - enemy.y) < 20) {
+localProjectiles.splice(idx, 1);
+// El daño e impactos se procesan de forma sincronizada en cada pantalla cliente
+}
+});
+});
+// Procesar balas enemigas de otros jugadores hacia ti (PVP)
+networkProjectiles.forEach((p, idx) => {
+p.x += p.vx; p.y += p.vy; p.life--;
+if(p.life <= 0) networkProjectiles.splice(idx, 1);
+if(p.team !== localPlayer.role && Math.hypot(p.x - localPlayer.x, p.y - localPlayer.y) < 18) {
+localPlayer.hp -= 20;
+networkProjectiles.splice(idx, 1);
+if(localPlayer.hp <= 0) {
+if(localPlayer.role === 'FUGITIVE') {
+alert("💥 ¡Eliminado por un Agente! Devuelto a la celda.");
+localPlayer.x = 250; localPlayer.y = 250; localPlayer.hp = 100;
+localPlayer.bag = 0; localPlayer.hasKeycard = false; prisonEscaped = false;
+} else {
+alert("💥 ¡Eliminado por el Sindicato! Reapareciendo en Comisaría.");
+localPlayer.x = 1900; localPlayer.y = 600; localPlayer.hp = 100;
+}
+if(localPlayer.vehicle) localPlayer.vehicle = null;
+}
+}
+});
+// Recoger tarjetas del suelo (si un fugitivo mata a un policía y este suelta tarjeta)
+droppedKeycards.forEach((card, idx) => {
+if(localPlayer.role === 'FUGITIVE' && Math.hypot(localPlayer.x - card.x, localPlayer.y - card.y) < 30) {
+localPlayer.hasKeycard = true; droppedKeycards.splice(idx, 1);
+alert("¡Has recogido la Keycard del Agente abatido! Salida libre.");
+}
+});
+// Control de interfaces flotantes de proximidad
+let btn = document.getElementById('btn-interact'); btn.style.display = 'none';
+if (localPlayer.role === 'FUGITIVE') {
+if (!prisonEscaped && !localPlayer.hasKeycard) {
+let p = zones.prision;
+if (localPlayer.x > p.x && localPlayer.x < p.x + p.w && localPlayer.y > p.y && localPlayer.y < p.y + p.h) {
+if (Math.hypot(localPlayer.x - 450, localPlayer.y - 450) < 100) {
+btn.style.display = 'block'; btn.innerText = "Hackear Cables Perimetrales";
+btn.onclick = () => startPuzzle("PRISON");
+}
+}
+}
+if (localPlayer.bag === 0) {
 let bq = zones.bov_quimica;
 if (!serverRobberies.bov_quimica?.locked && localPlayer.x > bq.x && localPlayer.x < bq.x+bq.w && localPlayer.y > bq.y && localPlayer.y < bq.y+bq.h) {
-btn.style.display = 'block'; btn.innerText = "Sifonar Compuestos Químicos";
+btn.style.display = 'block'; btn.innerText = "Robar Criptomonedas (Esperar Hackeo)";
 btn.onclick = () => socket.emit('tryRobbery', 'bov_quimica');
 }
 let fu = zones.fab_uranio;
 if (!serverRobberies.fab_uranio?.locked && localPlayer.x > fu.x && localPlayer.x < fu.x+fu.w && localPlayer.y > fu.y && localPlayer.y < fu.y+fu.h) {
-btn.style.display = 'block'; btn.innerText = "Bypass de Seguridad Digital";
-btn.onclick = () => startPuzzle();
+btn.style.display = 'block'; btn.innerText = "Extraer Nano Textiles Industriales";
+btn.onclick = () => startPuzzle("FABRICA");
 }
 }
 let vc = zones.volcan;
@@ -231,82 +325,65 @@ if (localPlayer.bag > 0 && localPlayer.x > vc.x && localPlayer.x < vc.x+vc.w && 
 btn.style.display = 'block'; btn.innerText = "Subir Datos a la Red Oscura";
 btn.onclick = () => { localPlayer.cash += localPlayer.bag; localPlayer.bag = 0; };
 }
-document.getElementById('txt-role').innerText = localPlayer.role === 'FUGITIVE' ? 'Fugitivo' : 'Miembro Sindicato';
-document.getElementById('txt-role').style.color = localPlayer.role === 'FUGITIVE' ? '#ffcc00' : '#00ffcc';
-document.getElementById('txt-cash').innerText = $${localPlayer.cash};
-document.getElementById('bag-fill').style.width = (localPlayer.bag > 0 ? 100 : 0) + '%';
-let cdStr = "";
-let ahora = Date.now();
-for (let k in serverRobberies) {
-if (serverRobberies[k]?.locked) {
-let mins = Math.ceil((serverRobberies[k].cooldownEnd - ahora) / 1000 / 60);
-cdStr += 🔒 ${zones[k].name}: Bloqueado (~${mins} min)<br>;
+}
+// HUD dinámico según el equipo
+if(localPlayer.role === 'AGENT') {
+document.getElementById('txt-role').innerText = 'Agente de Seguridad';
+document.getElementById('txt-role').style.color = '#0055ff';
 } else {
-cdStr += 🔓 ${zones[k].name}: En Línea<br>;
+document.getElementById('txt-role').innerText = !prisonEscaped ? 'Fugitivo Encerrado' : 'Infiltrado del Sindicato';
+document.getElementById('txt-role').style.color = !prisonEscaped ? '#ffcc00' : '#00ffcc';
+document.getElementById('txt-cash').innerText = $${localPlayer.cash};
+document.getElementById('txt-keycard').innerText = localPlayer.hasKeycard ? 'SÍ' : 'NO';
+document.getElementById('bag-fill').style.width = (localPlayer.bag > 0 ? 100 : 0) + '%';
 }
-}
-document.getElementById('cooldowns-info').innerHTML = cdStr;
+document.getElementById('hp-fill').style.width = localPlayer.hp + '%';
 }
 function draw() {
+if (!gameStarted) return;
 ctx.clearRect(0, 0, canvas.width, canvas.height);
-let camX = canvas.width / 2 - localPlayer.x;
-let camY = canvas.height / 2 - localPlayer.y;
-ctx.save();
-ctx.translate(camX, camY);
-// Fondo del mapa
-ctx.fillStyle = '#020205';
-ctx.fillRect(0, 0, MAP_SIZE, MAP_SIZE);
-ctx.strokeStyle = '#111122'; ctx.lineWidth = 4;
-ctx.strokeRect(0, 0, MAP_SIZE, MAP_SIZE);
+let camX = canvas.width / 2 - localPlayer.x; let camY = canvas.height / 2 - localPlayer.y;
+ctx.save(); ctx.translate(camX, camY);
+ctx.fillStyle = '#020205'; ctx.fillRect(0, 0, MAP_SIZE, MAP_SIZE);
+// Dibujar Estructuras y Sectores
 Object.keys(zones).forEach(k => {
 let z = zones[k];
-if (z.x + z.w + camX > 0 && z.x + camX < canvas.width && z.y + z.h + camY > 0 && z.y + camY < canvas.height) {
-ctx.fillStyle = z.color;
-ctx.fillRect(z.x, z.y, z.w, z.h);
-ctx.strokeStyle = '#ff0055'; ctx.lineWidth = 1; ctx.strokeRect(z.x, z.y, z.w, z.h);
+ctx.fillStyle = z.color; ctx.fillRect(z.x, z.y, z.w, z.h);
+ctx.strokeStyle = (k === 'prision' && (prisonEscaped || localPlayer.hasKeycard)) ? '#111122' : '#ff0055';
+ctx.lineWidth = 3; ctx.strokeRect(z.x, z.y, z.w, z.h);
 ctx.fillStyle = '#00ffcc'; ctx.font = 'bold 12px monospace';
 ctx.fillText(:: ${z.name.toUpperCase()} ::, z.x + 15, z.y + 25);
-}
 });
-ctx.fillStyle = vehicleSpawner.color;
-ctx.fillRect(vehicleSpawner.x - 20, vehicleSpawner.y - 12, 40, 24);
-ctx.fillStyle = '#fff'; ctx.font = '9px monospace';
-ctx.fillText("MONTURA [E]", vehicleSpawner.x - 25, vehicleSpawner.y - 18);
-ctx.fillStyle = '#ff0055';
-localProjectiles.forEach(p => { ctx.beginPath(); ctx.arc(p.x, p.y, 4, 0, Math.PI*2); ctx.fill(); });
+// Dibujar Spawner Vehículo
+ctx.fillStyle = vehicleSpawner.color; ctx.fillRect(vehicleSpawner.x - 20, vehicleSpawner.y - 12, 40, 24);
+// Proyectiles en movimiento
+localProjectiles.forEach(p => { ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x, p.y, 4, 0, Math.PI2); ctx.fill(); });
+networkProjectiles.forEach(p => { ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x, p.y, 4, 0, Math.PI2); ctx.fill(); });
+// Dibujar Otros Jugadores en Red (Remotos)
 Object.keys(remotePlayers).forEach(id => {
 let p = remotePlayers[id];
-ctx.save();
-ctx.translate(p.x, p.y);
-ctx.rotate(p.angle);
+if (p.role === 'PENDING') return;
+ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.angle);
 if (p.vehicle) {
-ctx.fillStyle = p.vehicle.color;
-ctx.fillRect(-22, -12, 44, 24);
+ctx.fillStyle = p.vehicle.color; ctx.fillRect(-22, -12, 44, 24);
 } else {
-ctx.fillStyle = p.role === 'FUGITIVE' ? '#ffcc00' : '#00ffcc';
+ctx.fillStyle = p.role === 'AGENT' ? '#0055ff' : '#ffcc00';
 ctx.beginPath(); ctx.arc(0, 0, 15, 0, Math.PI*2); ctx.fill();
+ctx.fillStyle = '#fff'; ctx.fillRect(8, -2, 6, 4); // Arma orientativa
 }
 ctx.restore();
 });
-ctx.save();
-ctx.translate(localPlayer.x, localPlayer.y);
-ctx.rotate(localPlayer.angle);
+// Dibujar tu Jugador Local
+ctx.save(); ctx.translate(localPlayer.x, localPlayer.y); ctx.rotate(localPlayer.angle);
 if (localPlayer.vehicle) {
-ctx.fillStyle = localPlayer.vehicle.color;
-ctx.fillRect(-22, -12, 44, 24);
-ctx.fillStyle = '#00ffcc'; ctx.fillRect(8, -8, 6, 16);
+ctx.fillStyle = localPlayer.vehicle.color; ctx.fillRect(-22, -12, 44, 24);
 } else {
-ctx.fillStyle = localPlayer.role === 'FUGITIVE' ? '#ffcc00' : '#00ffcc';
+ctx.fillStyle = localPlayer.role === 'AGENT' ? '#0055ff' : '#ffcc00';
 ctx.beginPath(); ctx.arc(0, 0, 15, 0, Math.PI*2); ctx.fill();
 ctx.strokeStyle = '#fff'; ctx.lineWidth = 1; ctx.stroke();
-ctx.fillStyle = '#ff0055'; ctx.fillRect(10, -2, 10, 4);
+ctx.fillStyle = '#ff0055'; ctx.fillRect(10, -2, 10, 4); // Cañón láser
 }
-ctx.restore();
-ctx.restore();
+ctx.restore(); ctx.restore();
 }
-function mainLoop() {
-update();
-draw();
-requestAnimationFrame(mainLoop);
-}
+function mainLoop() { update(); draw(); requestAnimationFrame(mainLoop); }
 mainLoop();
