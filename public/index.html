@@ -10,7 +10,7 @@
         
         #canvas-game { display: block; position: absolute; top: 0; left: 0; z-index: 1; }
         
-        /* 🚨 PANTALLA DE ACTIVACIÓN INICIAL (Elimina el bloqueo del navegador) */
+        /* 🚨 PANTALLA DE ACTIVACIÓN INICIAL */
         #boot-screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: #020205; z-index: 9999999; display: flex; flex-direction: column;
@@ -101,14 +101,12 @@
 </head>
 <body>
 
-    <!-- 🚨 CAPA INICIAL DESBLOQUEADORA -->
     <div id="boot-screen">
         <h1 style="color: #ff0055; margin-bottom: 25px; font-size: 26px; letter-spacing: 3px; text-shadow: 0 0 10px #ff0055;">🤖 ACCESO AL TERMINAL</h1>
         <p style="color: #888; margin-bottom: 30px; font-size: 12px;">Presiona el botón inferior para sincronizar audio urbano y red.</p>
         <button id="btn-boot">Sincronizar Canal</button>
     </div>
 
-    <!-- Menú de selección -->
     <div id="team-select">
         <h2 id="menu-title" style="color: #ff0055; margin-bottom: 20px; letter-spacing: 2px;">SELECCIÓN DE OPERATIVO</h2>
         <button id="btn-fugitive" class="team-btn">Fugitivo (Escapa y Roba)</button>
@@ -172,7 +170,8 @@
     <button id="btn-interact">INTERACTUAR</button>
 
     <div id="puzzle-box">
-        const socket = io();
+        <h3 id="puzzle-title" style="color:#ff0055; margin-bottom:10px;">HACKEO ELECTRÓNICO</h3>
+const socket = io();
 const canvas = document.getElementById('canvas-game');
 const ctx = canvas.getContext('2d');
 canvas.width = window.innerWidth;
@@ -213,13 +212,11 @@ oscillator.start();
 oscillator.stop(audioCtx.currentTime + duration);
 } catch(e) { console.log("Canal bloqueado"); }
 }
-// 🚨 PASO MAESTRO: CUANDO DA CLICK EN EL RECUADRO DE ENTRADA, SE ROMPE EL BLOQUEO
 document.getElementById('btn-boot').onclick = function() {
-playTone(600, 0.1); // Sonido de terminal encendida
+playTone(600, 0.1);
 document.getElementById('boot-screen').style.display = 'none';
 document.getElementById('team-select').style.display = 'block';
 };
-// Ruidos hover detectables
 document.getElementById('btn-fugitive').onmouseenter = () => { playTone(440, 0.05); };
 document.getElementById('btn-agent').onmouseenter = () => { playTone(554, 0.05); };
 document.getElementById('btn-fugitive').onclick = function() {
@@ -235,6 +232,7 @@ localPlayer.x = spawnX;
 localPlayer.y = spawnY;
 localPlayer.weapon = team === 'AGENT' ? 'TASER' : 'NONE';
 localPlayer.name = team === 'AGENT' ? "Agente_" + Math.floor(Math.random()*900+100) : "Fugitivo_" + Math.floor(Math.random()*900+100);
+canvas.style.pointerEvents = 'auto';
 gameStarted = true;
 document.getElementById('team-select').style.display = 'none';
 document.getElementById('hud').style.display = 'block';
@@ -243,6 +241,26 @@ if(team === 'AGENT') document.getElementById('hud-bag-container').style.display 
 document.getElementById('txt-name').innerText = localPlayer.name;
 socket.emit('joinTeam', { role: localPlayer.role, name: localPlayer.name, x: localPlayer.x, y: localPlayer.y });
 }
+window.buyWeapon = function(type, cost) {
+playTone(880, 0.1);
+if(localPlayer.cash >= cost) {
+localPlayer.cash -= cost; localPlayer.weapon = type;
+alert(🛒 Armamento configurado: ${type});
+shopActive = false; document.getElementById('shop-box').style.display = 'none';
+} else { alert("❌ Créditos Net insuficientes."); }
+};
+window.buyCustomName = function() {
+playTone(880, 0.1);
+if(localPlayer.cash >= 10000) {
+let newName = prompt("Escribe tu nuevo apodo de red:");
+if(newName && newName.trim().length > 0) {
+localPlayer.cash -= 10000; localPlayer.name = newName.trim().substring(0,12);
+document.getElementById('txt-name').innerText = localPlayer.name;
+alert("🆔 Firma digital actualizada.");
+shopActive = false; document.getElementById('shop-box').style.display = 'none';
+}
+} else { alert("❌ Requieres $10,000."); }
+};
 socket.on('connect', () => {
 document.getElementById('net-status').innerText = "✅ Canal de Red Sincronizado en Render";
 document.getElementById('net-status').style.color = "#00ffcc";
@@ -404,6 +422,7 @@ let currentIdx = playerClicks.length - 1;
 if (playerClicks[currentIdx] !== playerClicks.length) { document.getElementById('puzzle-status').innerText = "¡ERROR!"; setTimeout(() => startPuzzle(currentPuzzleType), 1000); return; }
 if (playerClicks.length === 4) { document.getElementById('puzzle-box').style.display = 'none'; puzzleActive = false; if(currentPuzzleType === "PRISON") { prisonEscaped = true; localPlayer.weapon = 'PISTOL'; alert("⚡ ¡Escape exitoso!"); } else { socket.emit('tryRobbery', 'fab_uranio'); } }
 }
+// --- DIBUJO CON FIX EN LÍNEA 412 CORRECTO ---
 function draw() {
 if (!gameStarted) return; ctx.clearRect(0, 0, canvas.width, canvas.height);
 let camX = canvas.width / 2 - localPlayer.x; let camY = canvas.height / 2 - localPlayer.y;
