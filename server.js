@@ -1,13 +1,21 @@
-// Servidor de Neon Syndicate Multijugador - Guarda como: server.js
 const express = require('express');
 const app = express();
 const http = require('http').createServer(app);
-const io = require('socket.io')(http, { cors: { origin: "*" } });
+const io = require('socket.io')(http, {
+    cors: {
+        origin: "*",
+        methods: ["GET", "POST"]
+    },
+    transports: ['websocket', 'polling']
+});
 
 app.use(express.static(__dirname + '/public'));
 
+app.get('/', (req, res) => {
+    res.sendFile(__dirname + '/public/index.html');
+});
+
 let players = {};
-// Tiempos de recarga: 10 minutos (600,000 milisegundos)
 let robberies = {
     bov_quimica: { locked: false, cooldownEnd: 0, cooldownTime: 600000, value: 1500 },
     fab_uranio: { locked: false, cooldownEnd: 0, cooldownTime: 600000, value: 4500 }
@@ -16,18 +24,31 @@ let robberies = {
 io.on('connection', (socket) => {
     console.log(`Operativo conectado: ${socket.id}`);
     
+    // Registrar jugador temporal antes de elegir bando
     players[socket.id] = {
         id: socket.id,
-        x: 300, y: 350,
+        name: "Conectando...",
+        x: 0, y: 0,
         angle: 0,
         hp: 100,
         cash: 0, bag: 0,
-        role: 'FUGITIVE', // Cambiado de Prisoner a Fugitive (Fugitivo)
-        vehicle: null
+        role: 'PENDING',
+        vehicle: null,
+        isArrestedOnGround: false
     };
 
     socket.emit('init', { id: socket.id, players, robberies });
-    socket.broadcast.emit('newPlayer', players[socket.id]);
+
+    // Escuchar cuando un jugador confirma su bando y su nombre real
+    socket.on('joinTeam', (data) => {
+        if (players[socket.id]) {
+            players[socket.id].role = data.role;
+            players[socket.id].name = data.name;
+            players[socket.id].x = data.x;
+            players[socket.id].y = data.y;
+            socket.broadcast.emit('newPlayer', players[socket.id]);
+        }
+    });
 
     socket.on('playerUpdate', (data) => {
         if (players[socket.id]) {
@@ -37,6 +58,9 @@ io.on('connection', (socket) => {
             players[socket.id].vehicle = data.vehicle;
             players[socket.id].bag = data.bag;
             players[socket.id].role = data.role;
+            players[socket.id].cash = data.cash;
+            players[socket.id].name = data.name;
+            players[socket.id].isArrestedOnGround = data.isArrestedOnGround;
             socket.broadcast.emit('playerMoved', players[socket.id]);
         }
     });
@@ -45,15 +69,8 @@ io.on('connection', (socket) => {
         socket.broadcast.emit('enemyProjectile', { id: socket.id, ...projData });
     });
 
-    socket.on('tryRobbery', (zoneId) => {
-        let now = Date.now();
-        if (robberies[zoneId] && !robberies[zoneId].locked) {
-            robberies[zoneId].locked = true;
-            robberies[zoneId].cooldownEnd = now + robberies[zoneId].cooldownTime;
-            
-            io.emit('robberyStarted', { zoneId, cooldownEnd: robberies[zoneId].cooldownEnd });
-            socket.emit('robberySuccess', robberies[zoneId].value);
-        }
+    socket.on('rescuePlayer', (targetId) => {
+        io.emit('playerRescued', targetId);
     });
 
     socket.on('disconnect', () => {
@@ -62,15 +79,5 @@ io.on('connection', (socket) => {
     });
 });
 
-setInterval(() => {
-    let now = Date.now();
-    for (let key in robberies) {
-        if (robberies[key].locked && now >= robberies[key].cooldownEnd) {
-            robberies[key].locked = false;
-            io.emit('robberyReset', key);
-        }
-    }
-}, 5000);
-
 const PORT = process.env.PORT || 3000;
-http.listen(PORT, () => console.log(`Servidor Neon Syndicate en puerto ${PORT}`));
+http.listen(PORT, '0.0.0.0', () => console.log(`Servidor Sting Operation en puerto ${PORT}`));
