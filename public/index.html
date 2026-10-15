@@ -409,7 +409,7 @@ if (!gameStarted) return; ctx.clearRect(0, 0, canvas.width, canvas.height);
 let camX = canvas.width / 2 - localPlayer.x; let camY = canvas.height / 2 - localPlayer.y;
 ctx.save(); ctx.translate(camX, camY); ctx.fillStyle = '#020205'; ctx.fillRect(0, 0, MAP_SIZE, MAP_SIZE);
 Object.keys(zones).forEach(k => {
-let z = zones[k]; ctx.fillStyle = z.color; ctx.fillRect(z.x, z.y, w, z.h);
+let z = zones[k]; ctx.fillStyle = z.color; ctx.fillRect(z.x, z.y, z.w, z.h);
 ctx.strokeStyle = (k === 'prision' && prisonEscaped) ? '#111122' : '#ff0055';
 if(k === 'armeria') ctx.strokeStyle = '#00ffcc';
 ctx.lineWidth = 3; ctx.strokeRect(z.x, z.y, z.w, z.h); ctx.fillStyle = '#00ffcc'; ctx.font = 'bold 12px monospace'; ctx.fillText(:: ${z.name.toUpperCase()} ::, z.x + 15, z.y + 25);
