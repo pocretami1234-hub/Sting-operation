@@ -10,20 +10,26 @@
         
         #canvas-game { display: block; position: absolute; top: 0; left: 0; z-index: 1; }
         
-        /* INTERFAZ RETRO-FUNKIN ACCESO AL TERMINAL */
-        #boot-screen {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: #020205; z-index: 9999999; display: flex; flex-direction: column;
-            justify-content: center; align-items: center; text-align: center;
+        /* CURSOR FÍSICO DE ENLACE NEÓN */
+        #neon-cursor {
+            position: absolute; width: 14px; height: 14px; background: #00ffcc;
+            border-radius: 50%; z-index: 999999; box-shadow: 0 0 15px #00ffcc, 0 0 30px #00ffcc;
+            pointer-events: none; top: 50%; left: 50%; transform: translate(-50%, -50%);
         }
-        .funkin-btn {
-            padding: 20px 40px; font-size: 20px; font-weight: bold; background: #111;
-            color: #ff0055; border: 2px solid #ff0055; border-radius: 4px;
-            box-shadow: 0 0 15px rgba(255, 0, 85, 0.3); text-transform: uppercase;
+
+        /* MENÚ DE SELECCIÓN DIRECTO SIN BLOQUEOS */
+        #team-select {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: rgba(5, 5, 15, 0.95); border: 2px solid #ff0055; padding: 40px;
+            border-radius: 8px; text-align: center; z-index: 9999; box-shadow: 0 0 30px rgba(255,0,85,0.4);
+            width: 460px;
         }
-        .funkin-btn.selected {
-            background: #ff0055; color: white; box-shadow: 0 0 30px #ff0055; transform: scale(1.05);
+        .menu-zone {
+            padding: 20px; font-size: 16px; font-weight: bold; margin: 20px auto;
+            border-radius: 6px; text-transform: uppercase; width: 90%; transition: all 0.2s;
         }
+        #zone-fugitive { background: #111; color: #ffcc00; border: 2px dashed #ffcc00; }
+        #zone-agent { background: #111; color: #0055ff; border: 2px dashed #0055ff; }
 
         /* HUD Superior */
         #hud {
@@ -33,7 +39,7 @@
             box-shadow: 0 0 10px rgba(255, 0, 85, 0.2); display: none;
         }
         .bar { background: #111; border-radius: 2px; height: 12px; width: 100px; display: inline-block; overflow: hidden; border: 1px solid #333; }
-        #hp-fill { background: #ff0055; height: 100%; width: 100%; transition: width 0.2s ease; }
+        #hp-fill { background: #ff0055; height: 100%; width: 100%; }
         #bag-fill { background: #00ffcc; height: 100%; width: 0%; }
 
         /* Leaderboard */
@@ -43,116 +49,22 @@
             font-size: 12px; border: 2px solid #00ffcc; width: 220px; max-height: 200px; overflow-y: auto;
             display: none; box-shadow: 0 0 10px rgba(0, 255, 204, 0.2);
         }
-        .leader-row { display: flex; justify-content: space-between; margin: 4px 0; padding-bottom: 2px; border-bottom: 1px dashed #222; }
-
-        /* MENÚ DE SELECCIÓN TIPO FNF (NAVEGABLE CON TECLADO) */
-        #team-select {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            background: #05050f; border: 2px solid #ff0055; padding: 40px;
-            border-radius: 8px; text-align: center; z-index: 99999; box-shadow: 0 0 30px rgba(255,0,85,0.5);
-            width: 460px; display: none;
-        }
-        .menu-option {
-            padding: 15px 25px; font-size: 18px; font-weight: bold; margin: 15px auto;
-            border-radius: 4px; text-transform: uppercase; width: 90%; background: #111;
-            transition: all 0.15s ease; border: 2px solid #333; color: #666;
-        }
-        #opt-fugitive.selected { color: #000; background: #ffcc00; border-color: #fff; box-shadow: 0 0 25px #ffcc00; transform: scale(1.03); }
-        #opt-agent.selected { color: #fff; background: #0055ff; border-color: #fff; box-shadow: 0 0 25px #0055ff; transform: scale(1.03); }
-
-        #death-screen {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255, 0, 85, 0.35); backdrop-filter: blur(4px);
-            z-index: 99999; display: flex; flex-direction: column; justify-content: center;
-            align-items: center; text-align: center; display: none;
-        }
-
-        /* Armería */
-        #shop-box {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            background: #05050f; border: 3px solid #00ffcc; padding: 25px; border-radius: 6px;
-            z-index: 500; text-align: center; display: none; box-shadow: 0 0 35px rgba(0, 255, 204, 0.4);
-            min-width: 340px;
-        }
-        .shop-item {
-            background: #111122; border: 1px solid #333; padding: 12px; margin: 8px 0;
-            border-radius: 4px; display: flex; justify-content: space-between; align-items: center;
-        }
-        .buy-btn { background: #00ffcc; color: #000; border: none; padding: 6px 12px; font-weight: bold; cursor: pointer; border-radius: 2px; }
-        #btn-close-shop { margin-top: 15px; background: #ff0055; color: white; border: none; padding: 8px 20px; cursor: pointer; font-weight: bold; border-radius: 4px; }
-
-        /* Puzles */
-        #puzzle-box {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            background: #05050a; border: 3px solid #ff0055; padding: 25px; border-radius: 6px;
-            z-index: 100; text-align: center; display: none; box-shadow: 0 0 30px rgba(255, 0, 85, 0.4);
-        }
-        .node { width: 45px; height: 45px; background: #111; border: 2px solid #333; display: inline-block; margin: 8px; border-radius: 4px; cursor: pointer; line-height: 40px; font-weight: bold; color: #00ffcc; }
-        .node.active { background: #ff0055; color: #fff; border-color: #fff; box-shadow: 0 0 10px #ff0055; }
-        
-        #btn-interact {
-            position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);
-            padding: 12px 30px; font-weight: bold; font-size: 16px; background: #ff0055; color: white;
-            border: none; border-radius: 4px; display: none; box-shadow: 0 0 15px #ff0055;
-            text-transform: uppercase; z-index: 100;
-        }
+        .leader-row { display: flex; justify-content: space-between; margin: 4px 0; }
     </style>
-    <!-- Librería de Red oficial CDN -->
     <script src="https://socket.io"></script>
 </head>
 <body>
 
-    <!-- PANTALLA ROJA RETRO-FUNKIN CON ENTER -->
-    <div id="boot-screen">
-        <h1 style="color: #ff0055; margin-bottom: 25px; font-size: 26px; letter-spacing: 3px; text-shadow: 0 0 10px #ff0055;">🤖 OPERACIÓN ACÚSTICA</h1>
-        <p style="color: #888; margin-bottom: 30px; font-size: 13px;">Presiona <span style="color:#fff; font-weight:bold;">[ ENTER ]</span> para sincronizar módulos.</p>
-        <button id="btn-boot" class="funkin-btn selected">Sincronizar Canal</button>
-    </div>
+    <!-- El Puntito Neón que moverás con WASD -->
+    <div id="neon-cursor"></div>
 
-    <!-- Menú de selección al estilo FNF navigación por flechas -->
     <div id="team-select">
-        <h2 id="menu-title" style="color: #ff0055; margin-bottom: 20px; letter-spacing: 2px;">SELECCIÓN DE OPERATIVO</h2>
-        <p style="font-size: 11px; color: #666; margin-bottom: 10px;">Usa las flechas [↑/↓] o [W/S] para moverte. [ENTER] para elegir.</p>
+        <h2 style="color: #ff0055; margin-bottom: 15px; letter-spacing: 2px;">STING OPERATION</h2>
+        <p style="font-size: 11px; color: #888; margin-bottom: 15px;">Mueve el puntito CIAN con [WASD] sobre tu bando.</p>
         
-        <div id="opt-fugitive" class="menu-option selected">Fugitivo (Escapa y Roba)</div>
-        <div id="opt-agent" class="menu-option">Agente (Defiende y Caza)</div>
-        
-        <p id="net-status" style="font-size: 10px; margin-top: 20px; color: #ff0055;">Canal de datos en espera...</p>
-    </div>
-
-    <div id="death-screen">
-        <h1 id="death-title" style="color: white; font-size: 28px; font-weight: bold; text-shadow: 0 0 10px #ff0055;">👮‍♂️ ESPOSADO POR LA POLICÍA</h1>
-        <p id="death-desc" style="color: #ffcc00; margin-top: 10px; font-size: 13px;">Inmovilizado en el suelo. Espera un rescate aliado [E] o irás a prisión...</p>
-        <h2 id="death-timer" style="color: white; font-size: 50px; margin-top: 15px;">10</h2>
-    </div>
-
-    <div id="shop-box">
-        <h3 style="color:#00ffcc; margin-bottom:12px; letter-spacing:1px;">🤖 MERCADO NEGRO DE ARMAS</h3>
-        <div class="shop-item">
-            <div style="text-align:left;">
-                <div style="font-weight:bold; color:#fff;">Fusil AK-45</div>
-                <div style="font-size:10px; color:#ffcc00;">Daño: 25 HP | Cadencia: Rápida</div>
-            </div>
-            <button class="buy-btn" onclick="buyWeapon('AK45', 3500)">$3,500</button>
-        </div>
-        <div class="shop-item">
-            <div style="text-align:left;">
-                <div style="font-weight:bold; color:#fff;">Escopeta Táctica</div>
-                <div style="font-size:10px; color:#ff0055;">Daño: 50 HP | Ráfaga Impacto</div>
-            </div>
-            <button class="buy-btn" onclick="buyWeapon('SHOTGUN', 5000)">$5,000</button>
-        </div>
-        <div class="shop-item" style="border: 1px solid #ffcc00; background: #1a1005;">
-            <div style="text-align:left;">
-                <div style="font-weight:bold; color:#ffcc00;">ID Personalizada</div>
-                <div style="font-size:10px; color:#fff;">Cambia tu apodo en el Servidor</div>
-            </div>
-            <button class="buy-btn" style="background:#ffcc00;" onclick="buyCustomName()">$10,000</button>
-        </div>
-        <button id="btn-close-shop">CERRAR INTERFAZ</button>
-    </div>
-
-    <div id="hud">
+        <div id="zone-fugitive" class="menu-zone">🏃‍♂️ Mover aquí para Fugitivo</div>
+        <div id="zone-agent" class="menu-zone">👮‍♂️ Mover aquí para Agente</div>
+    </div> <div id="hud">
         <div style="display:flex; justify-content:space-between; margin-bottom:5px; font-weight:bold;">
             <span style="color:#ffcc00;">🏃‍♂️ Fugs: <span id="count-fugs">0</span></span>
             <span style="color:#0055ff;">👮‍♂️ Agents: <span id="count-agents">0</span></span>
@@ -164,14 +76,18 @@
         <div>Integridad: <div class="bar"><div id="hp-fill"></div></div></div>
         <div id="hud-bag-container">Mochila Cyber: <div class="bar"><div id="bag-fill"></div></div></div>
         <div id="hud-cash-container">Créditos Net: <span id="txt-cash" style="color:#00ffcc;">$0</span></div>
-        <hr style="margin:6px 0; border-color:#ff0055;"> <div id="leaderboard">
+        <hr style="margin:6px 0; border-color:#ff0055;">
+        <div id="cooldowns-info" style="font-size:11px; color:#888;"></div>
+    </div>
+
+    <div id="leaderboard">
         <div style="font-weight:bold; color:#00ffcc; text-align:center; margin-bottom:8px; border-bottom:1px solid #00ffcc;">NEXO DE OPERATIVOS</div>
         <div id="leaderboard-content"></div>
     </div>
 
-    <button id="btn-interact">INTERACTUAR</button>
+    <button id="btn-interact" style="position:absolute; bottom:40px; left:50%; transform:translateX(-50%); padding:12px 30px; font-weight:bold; font-size:16px; background:#ff0055; color:white; border:none; border-radius:4px; display:none; box-shadow:0 0 15px #ff0055; text-transform:uppercase; z-index:100;">INTERACTUAR</button>
 
-    <div id="puzzle-box">
+    <div id="puzzle-box" style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); background:#05050a; border:3px solid #ff0055; padding:25px; border-radius:6px; z-index:100; text-align:center; display:none; box-shadow:0 0 30px rgba(255, 0, 85, 0.4);">
         <h3 id="puzzle-title" style="color:#ff0055; margin-bottom:10px;">HACKEO ELECTRÓNICO</h3>
         <div id="nodes-container"></div>
         <p id="puzzle-status" style="margin-top:10px; font-size:12px; color:#ff0055;"></p>
@@ -189,8 +105,10 @@
 
         let myId = null;
         let gameStarted = false;
-        let bootScreenActive = true; 
-        let currentMenuIndex = 0;
+        
+        // Coordenadas físicas en pantalla para tu Puntito Neón
+        let cursorX = window.innerWidth / 2;
+        let cursorY = window.innerHeight / 2;
 
         let localPlayer = { name: "Anon_User", x: 250, y: 250, angle: 0, hp: 100, cash: 0, bag: 0, maxBag: 1500, role: 'PENDING', vehicle: null, weapon: 'NONE', isStunned: false, stunEnd: 0, isDead: false, isArrestedOnGround: false };
         let remotePlayers = {};
@@ -215,54 +133,36 @@
         let droppedKeycards = [];
         let arrestInterval = null;
 
-        function playTone(freq, duration) {
-            try {
-                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                const oscillator = audioCtx.createOscillator();
-                const gainNode = audioCtx.createGain();
-                oscillator.type = 'sine';
-                oscillator.frequency.setValueAtTime(freq, audioCtx.currentTime);
-                gainNode.gain.setValueAtTime(0.06, audioCtx.currentTime);
-                gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
-                oscillator.connect(gainNode);
-                gainNode.connect(audioCtx.destination);
-                oscillator.start(); oscillator.stop(audioCtx.currentTime + duration);
-            } catch(e) {}
-        }
+        const keys = {};
+        let mouseX = 0, mouseY = 0;
 
-        window.addEventListener('keydown', e => {
+        window.addEventListener('keydown', e => { 
             let key = e.key.toLowerCase();
-            if (bootScreenActive) {
-                if (e.key === 'Enter' || e.key === ' ') {
-                    playTone(600, 0.12); bootScreenActive = false;
-                    document.getElementById('boot-screen').style.display = 'none';
-                    document.getElementById('team-select').style.display = 'block';
-                }
-                return;
-            }
-            if (!gameStarted) {
-                if (e.key === 'ArrowUp' || key === 'w') { playTone(440, 0.05); currentMenuIndex = 0; updateMenuSelection(); }
-                if (e.key === 'ArrowDown' || key === 's') { playTone(554, 0.05); currentMenuIndex = 1; updateMenuSelection(); }
-                if (e.key === 'Enter' || e.key === ' ') {
-                    playTone(880, 0.15);
-                    if (currentMenuIndex === 0) selectTeam('FUGITIVE', 250, 250);
-                    else selectTeam('AGENT', 1900, 600);
-                }
-                return;
-            }
-            if (gameStarted && !localPlayer.isArrestedOnGround) { keys[key] = true; handleInteractions(key); }
+            keys[key] = true;
+            if(gameStarted && !localPlayer.isArrestedOnGround) handleInteractions(key);
         });
-
-        window.addEventListener('keyup', e => { if(gameStarted) keys[e.key.toLowerCase()] = false; });
-
-        function updateMenuSelection() {
-            const optFug = document.getElementById('opt-fugitive');
-            const optAge = document.getElementById('opt-agent');
-            if (currentMenuIndex === 0) { optFug.classList.add('selected'); optAge.classList.remove('selected'); } 
-            else { optAge.classList.add('selected'); optFug.classList.remove('selected'); }
+        window.addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false; });
+        window.addEventListener('mousemove', e => { mouseX = e.clientX; mouseY = e.clientY; }); function handleInteractions(key) {
+            if (!gameStarted || key !== 'e' || localPlayer.isArrestedOnGround) return;
+            let d = Math.hypot(localPlayer.x - vehicleSpawner.x, localPlayer.y - vehicleSpawner.y);
+            if (d < 60) {
+                if (localPlayer.role === 'FUGITIVE' && !prisonEscaped) return;
+                localPlayer.vehicle = { name: vehicleSpawner.name, color: vehicleSpawner.color, speed: 9.5 };
+            }
         }
 
-        document.getElementById('btn-close-shop').onclick = function() { shopActive = false; document.getElementById('shop-box').style.display = 'none'; };
+        function shoot() {
+            if (localPlayer.weapon === 'NONE') return;
+            let sX = canvas.width / 2; let sY = canvas.height / 2;
+            let angle = Math.atan2(mouseY - sY, mouseX - sX);
+            let colorProj = '#ff0055'; let size = 4; let damage = 15; let isStun = false;
+            if (localPlayer.weapon === 'AK45') { colorProj = '#ff6600'; size = 5; damage = 25; }
+            if (localPlayer.weapon === 'SHOTGUN') { colorProj = '#ff0033'; size = 8; damage = 50; }
+            if (localPlayer.role === 'AGENT') { colorProj = '#00ffff'; damage = 10; isStun = true; }
+            let proj = { x: localPlayer.x, y: localPlayer.y, vx: Math.cos(angle)*15, vy: Math.sin(angle)*15, life: 50, color: colorProj, size: size, damage: damage, isStun: isStun, team: localPlayer.role };
+            localProjectiles.push(proj);
+            socket.emit('fireProjectile', { x: proj.x, y: proj.y, vx: proj.vx, vy: proj.vy, color: colorProj, size: size, damage: damage, isStun: isStun, team: localPlayer.role });
+        }
 
         function selectTeam(team, spawnX, spawnY) {
             localPlayer.role = team; localPlayer.x = spawnX; localPlayer.y = spawnY;
@@ -270,93 +170,101 @@
             localPlayer.name = team === 'AGENT' ? "Agente_" + Math.floor(Math.random()*900+100) : "Fugitivo_" + Math.floor(Math.random()*900+100);
             gameStarted = true;
             document.getElementById('team-select').style.display = 'none';
+            document.getElementById('neon-cursor').style.display = 'none';
             document.getElementById('hud').style.display = 'block';
             document.getElementById('leaderboard').style.display = 'block';
-            if(team === 'AGENT') document.getElementById('hud-bag-container').style.display = 'none';
             document.getElementById('txt-name').innerText = localPlayer.name;
             socket.emit('joinTeam', { role: localPlayer.role, name: localPlayer.name, x: localPlayer.x, y: localPlayer.y });
         }
 
-        window.buyWeapon = function(type, cost) {
-            playTone(880, 0.1);
-            if(localPlayer.cash >= cost) {
-                localPlayer.cash -= cost; localPlayer.weapon = type;
-                alert(`🛒 Armamento configurado: ${type}`);
-                shopActive = false; document.getElementById('shop-box').style.display = 'none';
-            } else { alert("❌ Créditos Net insuficientes."); }
-        };
-
-        window.buyCustomName = function() {
-            playTone(880, 0.1);
-            if(localPlayer.cash >= 10000) {
-                let newName = prompt("Escribe tu nuevo apodo de red:");
-                if(newName && newName.trim().length > 0) {
-                    localPlayer.cash -= 10000; localPlayer.name = newName.trim().substring(0,12);
-                    document.getElementById('txt-name').innerText = localPlayer.name;
-                    alert("🆔 Firma digital actualizada.");
-                    shopActive = false; document.getElementById('shop-box').style.display = 'none';
+        function triggerGroundArrest() {
+            localPlayer.isArrestedOnGround = true; localPlayer.hp = 0; if (localPlayer.vehicle) localPlayer.vehicle = null;
+            document.getElementById('death-screen').style.display = 'flex';
+            let count = 10; document.getElementById('death-timer').innerText = count;
+            arrestInterval = setInterval(() => {
+                count--; document.getElementById('death-timer').innerText = count;
+                if (count <= 0) {
+                    clearInterval(arrestInterval); document.getElementById('death-screen').style.display = 'none';
+                    localPlayer.isArrestedOnGround = false; localPlayer.hp = 100; localPlayer.bag = 0;
+                    localPlayer.x = 250; localPlayer.y = 250; localPlayer.weapon = 'NONE'; prisonEscaped = false;
                 }
-            } else { alert("❌ Requieres $10,000."); }
-        };
-
-        socket.on('connect', () => {
-            document.getElementById('net-status').innerText = "✅ Canal de Red Sincronizado en Render";
-            document.getElementById('net-status').style.color = "#00ffcc";
-        });
-
-        socket.on('init', (data) => {
-            myId = data.id; serverRobberies = data.robberies;
-            Object.keys(data.players).forEach(id => { if(id !== myId) remotePlayers[id] = data.players[id]; });
-        });
-
-        socket.on('newPlayer', (player) => { remotePlayers[player.id] = player; });
-        socket.on('playerMoved', (player) => { if(remotePlayers[player.id]) remotePlayers[player.id] = player; });
-        socket.on('playerDisconnected', (id) => { delete remotePlayers[id]; });
-        socket.on('enemyProjectile', (p) => { networkProjectiles.push(p); });
-
-        socket.on('playerRescued', (id) => {
-            if(id === myId && localPlayer.isArrestedOnGround) {
-                clearInterval(arrestInterval); localPlayer.isArrestedOnGround = false; localPlayer.hp = 100;
-                document.getElementById('death-screen').style.display = 'none'; alert("🤝 ¡Rescatado!");
-            }
-        });
-
-        const keys = {}; let mouseX = 0, mouseY = 0;
-        window.addEventListener('mousemove', e => { mouseX = e.clientX; mouseY = e.clientY; });
-        window.addEventListener('mousedown', e => { if(gameStarted && e.button === 0 && !puzzleActive && !shopActive && !localPlayer.isArrestedOnGround) shoot(); });
-
-        function handleInteractions(key) {
-            if (!gameStarted || key !== 'e' || localPlayer.isArrestedOnGround) return;
-            if (localPlayer.vehicle) { localPlayer.vehicle = null; } 
-            else {
-                if (localPlayer.role === 'FUGITIVE' && !prisonEscaped) return;
-                let d = Math.hypot(localPlayer.x - vehicleSpawner.x, localPlayer.y - vehicleSpawner.y);
-                if (d < 60) localPlayer.vehicle = { name: vehicleSpawner.name, color: vehicleSpawner.color, speed: 9.5 };
-            }
+            }, 1000);
         }
 
-        function shoot() {
-            if(localPlayer.weapon === 'NONE') return;
-            let sX = canvas.width / 2; let sY = canvas.height / 2;
-            let angle = Math.atan2(mouseY - sY, mouseX - sX);
-            let colorProj = '#ff0055'; let size = 4; let damage = 15; let isStun = false;
-            if(localPlayer.weapon === 'AK45') { colorProj = '#ff6600'; size = 5; damage = 25; }
-            if(localPlayer.weapon === 'SHOTGUN') { colorProj = '#ff0033'; size = 8; damage = 50; }
-            if(localPlayer.role === 'AGENT') { colorProj = '#00ffff'; damage = 10; isStun = true; } 
-            let proj = { x: localPlayer.x, y: localPlayer.y, vx: Math.cos(angle)*15, vy: Math.sin(angle)*15, life: 50, color: colorProj, size: size, damage: damage, isStun: isStun, team: localPlayer.role }; function startPuzzle(type) {
-            puzzleActive = true; currentPuzzleType = type; document.getElementById('puzzle-box').style.display = 'block'; document.getElementById('puzzle-status').innerText = "";
-            playerClicks = []; puzzleSequence = Array.from({length: 4}, (_, i) => i + 1).sort(() => Math.random() - 0.5);
-            const container = document.getElementById('nodes-container'); container.innerHTML = "";
-            puzzleSequence.forEach(num => {
-                let btn = document.createElement('div'); btn.className = 'node'; btn.innerText = num;
-                btn.onclick = () => { playTone(660, 0.08); if(btn.classList.contains('active')) return; btn.classList.add('active'); playerClicks.push(num); checkPuzzleProgress(); };
-                container.appendChild(btn);
+        function checkWallCollisions(oldX, oldY) {
+            let radius = 15;
+            Object.keys(zones).forEach(k => {
+                let z = zones[k];
+                if (k === 'prision' && (prisonEscaped || localPlayer.role === 'AGENT')) return;
+                if (localPlayer.x + radius > z.x && localPlayer.x - radius < z.x + z.w && localPlayer.y + radius > z.y && localPlayer.y - radius < z.y + z.h) {
+                    localPlayer.x = oldX; localPlayer.y = oldY;
+                }
             });
         }
-        function checkPuzzleProgress() {
-            let currentIdx = playerClicks.length - 1;
-            if (playerClicks[currentIdx] !== playerClicks.length) { document.getElementById('puzzle-status').innerText = "¡ERROR!"; setTimeout(() => startPuzzle(currentPuzzleType), 1000); return; }
-            if (playerClicks.length === 4) { document.getElementById('puzzle-box').style.display = 'none'; puzzleActive = false; if(currentPuzzleType === "PRISON") { prisonEscaped = true; localPlayer.weapon = 'PISTOL'; alert("⚡ ¡Escape exitoso!"); } else { socket.emit('tryRobbery', 'fab_uranio'); } }
+
+        function update() {
+            // LÓGICA DE MOVIMIENTO DEL CURSOR NEÓN (WASD EN EL MENÚ)
+            if (!gameStarted) {
+                let cursorSpeed = 8;
+                if (keys['w']) cursorY -= cursorSpeed;
+                if (keys['s']) cursorY += cursorSpeed;
+                if (keys['a']) cursorX -= cursorSpeed;
+                if (keys['d']) cursorX += cursorSpeed;
+
+                // Actualizar la posición del puntito en la pantalla
+                const cursorEl = document.getElementById('neon-cursor');
+                cursorEl.style.left = cursorX + 'px';
+                cursorEl.style.top = cursorY + 'px';
+
+                // Detectar si el puntito toca los botones del menú utilizando las cajas físicas
+                let rectFugitive = document.getElementById('zone-fugitive').getBoundingClientRect();
+                let rectAgent = document.getElementById('zone-agent').getBoundingClientRect();
+
+                if (cursorX > rectFugitive.left && cursorX < rectFugitive.right && cursorY > rectFugitive.top && cursorY < rectFugitive.bottom) {
+                    selectTeam('FUGITIVE', 250, 250); // Teletransporte instantáneo a la celda
+                }
+                if (cursorX > rectAgent.left && cursorX < rectAgent.right && cursorY > rectAgent.top && cursorY < rectAgent.bottom) {
+                    selectTeam('AGENT', 1900, 600); // Teletransporte instantáneo a la comisaría
+                }
+                return;
+            }
+
+            // Actualización de avatar normal en la partida
+            let now = Date.now(); if (localPlayer.isStunned && now > localPlayer.stunEnd) { localPlayer.isStunned = false; }
+            let oldX = localPlayer.x; let oldY = localPlayer.y;
+            let currentSpeed = localPlayer.vehicle ? localPlayer.vehicle.speed : 4.5;
+            if (localPlayer.isStunned) currentSpeed = currentSpeed / 2;
+
+            if (keys['w']) localPlayer.y -= currentSpeed; if (keys['s']) localPlayer.y += currentSpeed;
+            if (keys['a']) localPlayer.x -= currentSpeed; if (keys['d']) localPlayer.x += currentSpeed;
+
+            localPlayer.x = Math.max(20, Math.min(MAP_SIZE - 20, localPlayer.x)); localPlayer.y = Math.max(20, Math.min(MAP_SIZE - 20, localPlayer.y));
+            checkWallCollisions(oldX, oldY); localPlayer.angle = Math.atan2(mouseY - canvas.height/2, mouseX - canvas.width/2);
+            socket.emit('playerUpdate', { name: localPlayer.name, x: localPlayer.x, y: localPlayer.y, angle: localPlayer.angle, vehicle: localPlayer.vehicle, bag: localPlayer.bag, role: localPlayer.role, cash: localPlayer.cash, isArrestedOnGround: localPlayer.isArrestedOnGround });
+
+            localProjectiles.forEach((p, idx) => { p.x += p.vx; p.y += p.vy; p.life--; if (p.life <= 0) localProjectiles.splice(idx, 1); });
+            networkProjectiles.forEach((p, idx) => {
+                p.x += p.vx; p.y += p.vy; p.life--; if (p.life <= 0) networkProjectiles.splice(idx, 1);
+                if (p.team !== localPlayer.role && Math.hypot(p.x - localPlayer.x, p.y - localPlayer.y) < 18) {
+                    if (p.isStun) { localPlayer.isStunned = true; localPlayer.stunEnd = Date.now() + 2000; }
+                    localPlayer.hp -= p.damage; networkProjectiles.splice(idx, 1);
+                    if (localPlayer.hp <= 0 && !localPlayer.isArrestedOnGround && localPlayer.role === 'FUGITIVE') { triggerGroundArrest(); }
+                }
+            });
+
+            // Sincronizar recuadros dinámicos de HUD
+            let fugs = localPlayer.role === 'FUGITIVE' ? 1 : 0; let agents = localPlayer.role === 'AGENT' ? 1 : 0;
+            let leadHTML = `<div class="leader-row" style="color:#00ffcc;"><span>> ${localPlayer.name}</span><span>$${localPlayer.cash}</span></div>`;
+            Object.keys(remotePlayers).forEach(id => {
+                let rp = remotePlayers[id]; if (rp.role === 'PENDING') return;
+                if (rp.role === 'FUGITIVE') fugs++; if (rp.role === 'AGENT') agents++;
+                leadHTML += `<div class="leader-row" style="color:${rp.role === 'AGENT' ? '#0055ff' : '#ffcc00'};"><span>${rp.name || "Anon"}</span><span>$${rp.cash || 0}</span></div>`;
+            });
+            document.getElementById('count-fugs').innerText = fugs; document.getElementById('count-agents').innerText = agents;
+            document.getElementById('leaderboard-content').innerHTML = leadHTML;
+
+            let wName = "NINGUNA"; if (localPlayer.weapon === 'PISTOL') wName = "Pistola (Gratis)"; if (localPlayer.weapon === 'AK45') wName = "Fusil AK-45"; if (localPlayer.weapon === 'SHOTGUN') wName = "Escopeta Táctica"; if (localPlayer.weapon === 'TASER') wName = "Taser Aturdidor";
+            document.getElementById('txt-weapon').innerText = wName; document.getElementById('hp-fill').style.width = localPlayer.hp + '%';
         }
 
         function draw() {
@@ -365,9 +273,46 @@
             ctx.save(); ctx.translate(camX, camY); ctx.fillStyle = '#020205'; ctx.fillRect(0, 0, MAP_SIZE, MAP_SIZE);
 
             Object.keys(zones).forEach(k => {
-                let z = zones[k]; ctx.fillStyle = z.color; ctx.fillRect(z.x, z.y, z.w, z.h);
-                ctx.strokeStyle = (k === 'prision' && prisonEscaped) ? '#111122' : '#ff0055';
-                if(k === 'armeria') ctx.strokeStyle = '#00ffcc';
+                let z = zones[k]; ctx.fillStyle = z.color; ctx.fillRect(z.x, z.y, z.w, z.h); // Línea 412 Fix z.w impecable
+                ctx.strokeStyle = '#ff0055'; if (k === 'armeria') ctx.strokeStyle = '#00ffcc';
+                ctx.lineWidth = 3; ctx.strokeRect(z.x, z.y, z.w, z.h); ctx.fillStyle = '#00ffcc'; ctx.font = 'bold 12px monospace'; ctx.fillText(`:: ${z.name.toUpperCase()} ::`, z.x + 15, z.y + 25);
+            });
+
+            ctx.fillStyle = '#00ffcc'; ctx.fillRect(shopDoor.x, shopDoor.y, shopDoor.w, shopDoor.h);
+            ctx.fillStyle = vehicleSpawner.color; ctx.fillRect(vehicleSpawner.x - 20, vehicleSpawner.y - 12, 40, 24);
+            localProjectiles.forEach(p => { ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI*2); ctx.fill(); }); localProjectiles.forEach((p, idx) => { p.x += p.vx; p.y += p.vy; p.life--; if (p.life <= 0) localProjectiles.splice(idx, 1); });
+            networkProjectiles.forEach((p, idx) => {
+                p.x += p.vx; p.y += p.vy; p.life--; if (p.life <= 0) networkProjectiles.splice(idx, 1);
+                if (p.team !== localPlayer.role && Math.hypot(p.x - localPlayer.x, p.y - localPlayer.y) < 18) {
+                    if (p.isStun) { localPlayer.isStunned = true; localPlayer.stunEnd = Date.now() + 2000; }
+                    localPlayer.hp -= p.damage; networkProjectiles.splice(idx, 1);
+                    if (localPlayer.hp <= 0 && !localPlayer.isArrestedOnGround && localPlayer.role === 'FUGITIVE') { triggerGroundArrest(); }
+                }
+            });
+
+            // Sincronizar recuadros dinámicos de HUD
+            let fugs = localPlayer.role === 'FUGITIVE' ? 1 : 0; let agents = localPlayer.role === 'AGENT' ? 1 : 0;
+            let leadHTML = `<div class="leader-row" style="color:#00ffcc;"><span>> ${localPlayer.name}</span><span>$${localPlayer.cash}</span></div>`;
+            Object.keys(remotePlayers).forEach(id => {
+                let rp = remotePlayers[id]; if (rp.role === 'PENDING') return;
+                if (rp.role === 'FUGITIVE') fugs++; if (rp.role === 'AGENT') agents++;
+                leadHTML += `<div class="leader-row" style="color:${rp.role === 'AGENT' ? '#0055ff' : '#ffcc00'};"><span>${rp.name || "Anon"}</span><span>$${rp.cash || 0}</span></div>`;
+            });
+            document.getElementById('count-fugs').innerText = fugs; document.getElementById('count-agents').innerText = agents;
+            document.getElementById('leaderboard-content').innerHTML = leadHTML;
+
+            let wName = "NINGUNA"; if (localPlayer.weapon === 'PISTOL') wName = "Pistola (Gratis)"; if (localPlayer.weapon === 'AK45') wName = "Fusil AK-45"; if (localPlayer.weapon === 'SHOTGUN') wName = "Escopeta Táctica"; if (localPlayer.weapon === 'TASER') wName = "Taser Aturdidor";
+            document.getElementById('txt-weapon').innerText = wName; document.getElementById('hp-fill').style.width = localPlayer.hp + '%';
+        }
+
+        function draw() {
+            if (!gameStarted) return; ctx.clearRect(0, 0, canvas.width, canvas.height);
+            let camX = canvas.width / 2 - localPlayer.x; let camY = canvas.height / 2 - localPlayer.y;
+            ctx.save(); ctx.translate(camX, camY); ctx.fillStyle = '#020205'; ctx.fillRect(0, 0, MAP_SIZE, MAP_SIZE);
+
+            Object.keys(zones).forEach(k => {
+                let z = zones[k]; ctx.fillStyle = z.color; ctx.fillRect(z.x, z.y, z.w, z.h); // Línea 412 Fix z.w impecable
+                ctx.strokeStyle = '#ff0055'; if (k === 'armeria') ctx.strokeStyle = '#00ffcc';
                 ctx.lineWidth = 3; ctx.strokeRect(z.x, z.y, z.w, z.h); ctx.fillStyle = '#00ffcc'; ctx.font = 'bold 12px monospace'; ctx.fillText(`:: ${z.name.toUpperCase()} ::`, z.x + 15, z.y + 25);
             });
 
@@ -378,14 +323,12 @@
 
             Object.keys(remotePlayers).forEach(id => {
                 let p = remotePlayers[id]; if (p.role === 'PENDING') return;
-                ctx.fillStyle = p.isArrestedOnGround ? '#ff0055' : '#fff'; ctx.font = '10px monospace'; ctx.fillText((p.name || "Anon") + (p.isArrestedOnGround ? " [ESPOSADO]" : ""), p.x - 20, p.y - 25);
-                ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.angle); ctx.fillStyle = p.isArrestedOnGround ? '#222' : (p.role === 'AGENT' ? '#0055ff' : '#ffcc00'); ctx.beginPath(); ctx.arc(0, 0, 15, 0, Math.PI*2); ctx.fill(); ctx.restore();
+                ctx.fillStyle = p.isArrestedOnGround ? '#ff0055' : '#fff'; ctx.font = '10px monospace'; ctx.fillText(p.name, p.x - 20, p.y - 25);
+                ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.angle); ctx.fillStyle = p.role === 'AGENT' ? '#0055ff' : '#ffcc00'; ctx.beginPath(); ctx.arc(0, 0, 15, 0, Math.PI*2); ctx.fill(); ctx.restore();
             });
 
-            if(!localPlayer.isDead || localPlayer.isArrestedOnGround) {
-                ctx.fillStyle = localPlayer.isArrestedOnGround ? '#ff0055' : (localPlayer.isStunned ? '#ffcc00' : '#00ffcc'); ctx.font = '10px monospace'; ctx.fillText(localPlayer.name + (localPlayer.isArrestedOnGround ? " [ESPOSADO]" : ""), localPlayer.x - 20, localPlayer.y - 25);
-                ctx.save(); ctx.translate(localPlayer.x, localPlayer.y); ctx.rotate(localPlayer.angle); ctx.fillStyle = localPlayer.isArrestedOnGround ? '#222' : (localPlayer.role === 'AGENT' ? '#0055ff' : '#ffcc00'); ctx.beginPath(); ctx.arc(0, 0, 15, 0, Math.PI*2); ctx.fill(); ctx.restore();
-            }
+            ctx.fillStyle = '#00ffcc'; ctx.font = '10px monospace'; ctx.fillText(localPlayer.name, localPlayer.x - 20, localPlayer.y - 25);
+            ctx.save(); ctx.translate(localPlayer.x, localPlayer.y); ctx.rotate(localPlayer.angle); ctx.fillStyle = localPlayer.role === 'AGENT' ? '#0055ff' : '#ffcc00'; ctx.beginPath(); ctx.arc(0, 0, 15, 0, Math.PI*2); ctx.fill(); ctx.restore();
             ctx.restore();
         }
 
