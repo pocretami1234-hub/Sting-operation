@@ -10,7 +10,13 @@
         
         #canvas-game { display: block; position: absolute; top: 0; left: 0; z-index: 1; }
         
-        /* PANEL DE RECOPILACIÓN DE NÚCLEO */
+        /* CAPA DE PARPADEO MAESTRO DE AUDIO */
+        #siren-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 999999; pointer-events: none; display: none;
+        }
+
+        /* CONFIGURACIÓN DE NÚCLEO */
         #boot-screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: #020205; z-index: 9999999; display: flex; flex-direction: column;
@@ -28,18 +34,18 @@
         #chase-actors { position: absolute; white-space: nowrap; font-size: 20px; animation: arcadeChase 1.5s linear infinite; left: -80px; }
         @keyframes arcadeChase { 0% { left: -80px; } 100% { left: 270px; } }
 
-        /* SELECCIÓN DE REARQUITECTURA */
+        /* SELECCIÓN DE OPERATIVO */
         #team-select {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
             background: #05050f; border: 2px solid #ff0055; padding: 35px;
-            border-radius: 8px; text-align: center; z-index: 99999; box-shadow: 0 0 25px rgba(255,0,85,0.4);
+            border-radius: 8px; text-align: center; z-index: 99998; box-shadow: 0 0 25px rgba(255,0,85,0.4);
             width: 420px; display: none;
         }
         .team-btn { padding: 12px 25px; font-size: 15px; font-weight: bold; margin: 12px; border: none; border-radius: 4px; cursor: pointer; text-transform: uppercase; }
         #btn-fugitive { background: #ffcc00; color: #000; box-shadow: 0 0 12px #ffcc00; }
         #btn-agent { background: #0055ff; color: #fff; box-shadow: 0 0 12px #0055ff; }
 
-        /* HUD GENERAL */
+        /* HUD SUPERIOR */
         #hud {
             position: absolute; top: 10px; left: 10px; z-index: 100;
             background: rgba(5, 5, 10, 0.85); padding: 12px; border-radius: 4px;
@@ -55,7 +61,7 @@
         }
         .leader-row { display: flex; justify-content: space-between; margin: 4px 0; }
 
-        /* 📑 GUÍA DE CONTROLES TRANSPARENTE */
+        /* GUÍA TRANSPARENTE */
         #controls-guide {
             position: absolute; bottom: 20px; left: 20px; z-index: 100;
             background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(4px);
@@ -65,7 +71,7 @@
         }
         .guide-title { font-weight: bold; color: #00ffcc; margin-bottom: 4px; text-transform: uppercase; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 2px; }
 
-        /* 🧰 EQUIPAMIENTO EN RANURAS INFERIORES */
+        /* HOTBAR INFERIOR */
         #hotbar-container {
             position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
             z-index: 100; background: rgba(5, 5, 15, 0.75); backdrop-filter: blur(6px);
@@ -91,6 +97,9 @@
 </head>
 <body>
 
+    <!-- Capa para el parpadeo de sirenas -->
+    <div id="siren-overlay"></div>
+
     <div id="boot-screen">
         <h1 style="color: #ff0055; font-size: 22px; letter-spacing: 2px; text-shadow: 0 0 10px #ff0055;">🤖 CONFIGURACIÓN DE NÚCLEO</h1>
         <p id="boot-text" style="color: #888; font-size: 11px; margin-top: 10px; margin-bottom: 15px;">Selecciona el modo de rendimiento optimizado para tu hardware.</p>
@@ -106,16 +115,14 @@
         <p id="net-status" style="font-size: 10px; margin-top: 20px; color: #ff0055;">Sincronizando puente de datos...</p>
     </div>
 
-    <!-- 📑 PANEL TRANSPARENTE DE GUÍA DE INTERFAZ -->
     <div id="controls-guide">
         <div class="guide-title">Sincronización de Red</div>
         <div>[W,A,S,D] Moverse por el Mapa</div>
         <div>[Mover Mouse] Apuntar Dirección</div>
         <div>[Clic Izq] Disparar Arma Activa</div>
-        <div>[1, 2, 3] Cambiar Armamento</div>
+        <div>[1, 2, 3] Cambiar Armamiento</div>
     </div>
 
-    <!-- 🧰 COMPONENTES DE HOTBAR INFERIOR -->
     <div id="hotbar-container">
         <div id="slot-1" class="hotbar-slot active" onclick="switchSlot(1)">
             <span class="slot-key">1</span>
@@ -146,6 +153,7 @@
         const canvas = document.getElementById('canvas-game');
         const ctx = canvas.getContext('2d');
         
+        // Inicialización forzada de tamaño
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
 
@@ -163,9 +171,9 @@
         const MAP_SIZE = 4000;
         
         const zones = {
-            prision: { x: 100, y: 100, w: 400, h: 400, color: '#0d0d1a', name: "Complejo de Retención Alfa (Prisión)" },
+            prision: { x: 100, y: 100, w: 400, h: 400, color: '#0c0a14', name: "Complejo de Retención Alfa (Prisión)" },
             armeria: { x: 1000, y: 1500, w: 220, h: 220, color: '#151525', name: "Armería del Mercado Negro" },
-            comisaria: { x: 1800, y: 500, w: 450, h: 350, color: '#051026', name: "Estación de Comando (Policía)" },
+            comisaria: { x: 1800, y: 500, w: 450, h: 350, color: '#050c1f', name: "Estación de Comando (Policía)" },
             banco: { x: 2800, y: 2200, w: 400, h: 350, color: '#1a1505', name: "Bóveda Central de Créditos" }
         };
 
@@ -181,6 +189,70 @@
                 gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
                 oscillator.connect(gainNode); gainNode.connect(audioCtx.destination);
                 oscillator.start(); oscillator.stop(audioCtx.currentTime + duration);
+            } catch(e) {}
+        }
+
+        // 🚨 EFECTO PREMIUM: SIRENAS POLICIALES CON PARPADEO ROJO Y AZUL
+        function playPoliceSiren() {
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                let time = audioCtx.currentTime;
+                const overlay = document.getElementById('siren-overlay');
+                overlay.style.display = 'block';
+
+                for (let i = 0; i < 6; i++) {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'sawtooth';
+                    // Frecuencia oscilante de patrulla
+                    let freq = i % 2 === 0 ? 600 : 900;
+                    osc.frequency.setValueAtTime(freq, time);
+                    gain.gain.setValueAtTime(0.03, time);
+                    gain.gain.exponentialRampToValueAtTime(0.001, time + 0.3);
+                    
+                    osc.connect(gain); gain.connect(audioCtx.destination);
+                    osc.start(time); osc.stop(time + 0.3);
+
+                    // Cambiar colores sincrónicamente con el audio
+                    setTimeout(() => {
+                        overlay.style.backgroundColor = i % 2 === 0 ? 'rgba(0, 0, 255, 0.25)' : 'rgba(255, 0, 0, 0.25)';
+                    }, i * 300);
+
+                    time += 0.3;
+                }
+                setTimeout(() => { overlay.style.display = 'none'; }, 1800);
+            } catch(e) {}
+        }
+
+        // 🏃‍♂️ EFECTO PREMIUM: TIMBRE ELÉCTRICO DE RECREO/FUGA DE PRISIÓN
+        function playPrisonBell() {
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                let time = audioCtx.currentTime;
+                const overlay = document.getElementById('siren-overlay');
+                overlay.style.display = 'block';
+                overlay.style.backgroundColor = 'rgba(255, 204, 0, 0.2)';
+
+                // Generar sonido metálico de campana de alarma repetitivo
+                for (let i = 0; i < 15; i++) {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'square';
+                    osc.frequency.setValueAtTime(400, time);
+                    gain.gain.setValueAtTime(0.04, time);
+                    gain.gain.exponentialRampToValueAtTime(0.001, time + 0.08);
+                    
+                    osc.connect(gain); gain.connect(audioCtx.destination);
+                    osc.start(time); osc.stop(time + 0.08);
+
+                    // Parpadeo rápido de la alarma de escape
+                    setTimeout(() => {
+                        overlay.style.opacity = i % 2 === 0 ? '1' : '0.3';
+                    }, i * 100);
+
+                    time += 0.1;
+                }
+                setTimeout(() => { overlay.style.display = 'none'; overlay.style.opacity = '1'; }, 1500);
             } catch(e) {}
         }
 
@@ -215,23 +287,14 @@
         });
         
         window.addEventListener('keyup', e => { if (gameStarted) keys[e.key.toLowerCase()] = false; });
-        
-        window.addEventListener('mousemove', e => { 
-            mouseX = e.clientX; 
-            mouseY = e.clientY; 
-        });
-
-        window.addEventListener('mousedown', e => { 
-            if(gameStarted && e.button === 0 && !localPlayer.isArrestedOnGround) shoot(); 
-        });
+        window.addEventListener('mousemove', e => { mouseX = e.clientX; mouseY = e.clientY; });
+        window.addEventListener('mousedown', e => { if(gameStarted && e.button === 0 && !localPlayer.isArrestedOnGround) shoot(); });
 
         window.switchSlot = function(slotNum) {
             if(!gameStarted) return;
             activeSlot = slotNum;
             playTone(700, 0.04);
-            for(let i = 1; i <= 3; i++) {
-                document.getElementById(`slot-${i}`).classList.remove('active');
-            }
+            for(let i = 1; i <= 3; i++) { document.getElementById(`slot-${i}`).classList.remove('active'); }
             document.getElementById(`slot-${slotNum}`).classList.add('active');
             
             if(slotNum === 1) localPlayer.weapon = 'NONE';
@@ -239,8 +302,14 @@
             if(slotNum === 3) localPlayer.weapon = 'RIFLE';
         };
 
-        document.getElementById('btn-fugitive').onclick = function() { selectTeam('FUGITIVE', 250, 250); };
-        document.getElementById('btn-agent').onclick = function() { selectTeam('AGENT', 1950, 650); };
+        document.getElementById('btn-fugitive').onclick = function() { 
+            playPrisonBell(); 
+            setTimeout(() => { selectTeam('FUGITIVE', 250, 250); }, 1500); 
+        };
+        document.getElementById('btn-agent').onclick = function() { 
+            playPoliceSiren(); 
+            setTimeout(() => { selectTeam('AGENT', 1950, 650); }, 1800); 
+        };
 
         function selectTeam(team, spawnX, spawnY) {
             localPlayer.role = team; localPlayer.x = spawnX; localPlayer.y = spawnY;
@@ -258,7 +327,7 @@
             document.getElementById('net-status').innerText = "✅ Canal de Red Sincronizado en Render";
             document.getElementById('net-status').style.color = "#00ffcc";
         });
-          socket.on('init', (data) => {
+         socket.on('init', (data) => {
             myId = data.id;
             Object.keys(data.players).forEach(id => { if(id !== myId) remotePlayers[id] = data.players[id]; });
         });
@@ -282,7 +351,7 @@
         function update() {
             if (!gameStarted) return;
             let oldX = localPlayer.x; let oldY = localPlayer.y;
-            let speed = 4.5;
+            let speed = performanceMode === "LITE" ? 4.0 : 4.5;
 
             if (keys['w']) localPlayer.y -= speed;
             if (keys['s']) localPlayer.y += speed;
@@ -292,7 +361,6 @@
             localPlayer.x = Math.max(20, Math.min(MAP_SIZE - 20, localPlayer.x));
             localPlayer.y = Math.max(20, Math.min(MAP_SIZE - 20, localPlayer.y));
             
-            // Colisiones contra las estructuras fijas
             let radius = 15;
             Object.keys(zones).forEach(k => {
                 let z = zones[k];
@@ -301,7 +369,6 @@
                 }
             });
 
-            // 🎯 ROTACIÓN DINÁMICA: Tu personaje ahora sigue la punta exacta de tu mouse
             let sX = canvas.width / 2;
             let sY = canvas.height / 2;
             localPlayer.angle = Math.atan2(mouseY - sY, mouseX - sX);
@@ -322,8 +389,7 @@
             document.getElementById('leaderboard-content').innerHTML = leadHTML;
             document.getElementById('hp-fill').style.width = localPlayer.hp + '%';
         }
-
-        // --- MOTOR RENDIMIENTO HD Y DIBUJO DE LOS SUELOS MAPA ---
+         // --- MOTOR DE TEXTURAS VECTORIALES Y DIBUJO DE SUELOS HD ---
         function draw() {
             if (!gameStarted) return;
             
@@ -335,37 +401,39 @@
             let camX = canvas.width / 2 - localPlayer.x; let camY = canvas.height / 2 - localPlayer.y;
             ctx.save(); ctx.translate(camX, camY);
 
-            // 🌆 ASALTO DE CUADRÍCULA VECTORS HD DE FONDO
-            ctx.fillStyle = '#030308'; ctx.fillRect(0, 0, MAP_SIZE, MAP_SIZE);
+            // Fondo espacial oscuro
+            ctx.fillStyle = '#020205'; ctx.fillRect(0, 0, MAP_SIZE, MAP_SIZE);
             
+            // Rejilla de alta definición si la PC es moderna
             if (performanceMode === "HIGH") {
-                ctx.strokeStyle = 'rgba(0, 255, 204, 0.04)'; ctx.lineWidth = 1;
+                ctx.strokeStyle = 'rgba(0, 255, 204, 0.03)'; ctx.lineWidth = 1;
                 for (let x = 0; x < MAP_SIZE; x += 100) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, MAP_SIZE); ctx.stroke(); }
                 for (let y = 0; y < MAP_SIZE; y += 100) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(MAP_SIZE, y); ctx.stroke(); }
             }
 
-            // 🏢 RENDERIZADO DE MOSAICOS DE SUELO POR CADA BASE INTERACTIVA
+            // Pintar los mosaicos y texturas de cada base según tu idea
             Object.keys(zones).forEach(k => {
                 let z = zones[k];
                 
-                // Pintar suelos específicos según tu bando y localizaciones
-                if (k === 'prision') { ctx.fillStyle = '#0c0a14'; } 
-                else if (k === 'comisaria') { ctx.fillStyle = '#050c1f'; } 
-                else { ctx.fillStyle = '#0a0a0f'; }
+                // Mosaicos estructurales de fondo
+                if (k === 'prision') { ctx.fillStyle = '#0d0a17'; } 
+                else if (k === 'comisaria') { ctx.fillStyle = '#040b24'; } 
+                else { ctx.fillStyle = '#08080d'; }
                 ctx.fillRect(z.x, z.y, z.w, z.h);
 
-                // Texturas Vectoriales en los Suelos si es gama alta
+                // Dibujar líneas de suelo tácticas premium en modo HIGH
                 if (performanceMode === "HIGH") {
-                    ctx.strokeStyle = k === 'comisaria' ? 'rgba(0, 85, 255, 0.15)' : 'rgba(255, 0, 85, 0.15)';
+                    ctx.strokeStyle = k === 'comisaria' ? 'rgba(0, 85, 255, 0.12)' : 'rgba(255, 0, 85, 0.12)';
                     ctx.lineWidth = 2;
                     for (let sx = z.x; sx < z.x + z.w; sx += 40) { ctx.beginPath(); ctx.moveTo(sx, z.y); ctx.lineTo(sx, z.y + z.h); ctx.stroke(); }
                 }
 
-                ctx.fillStyle = z.color; ctx.fillRect(z.x, z.y, z.w, z.h);
+                // Bordes luminosos neón de las estructuras
                 ctx.strokeStyle = k === 'comisaria' ? '#0055ff' : '#ff0055';
                 if (k === 'armeria') ctx.strokeStyle = '#00ffcc';
                 ctx.lineWidth = 3; ctx.strokeRect(z.x, z.y, z.w, z.h);
                 
+                // Nombres en los paneles del mapa
                 ctx.fillStyle = '#00ffcc'; ctx.font = 'bold 11px monospace';
                 ctx.fillText(`:: ${z.name.toUpperCase()} ::`, z.x + 12, z.y + 22);
             });
@@ -375,21 +443,21 @@
             localProjectiles.forEach(p => { ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI*2); ctx.fill(); });
             networkProjectiles.forEach(p => { ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI*2); ctx.fill(); });
 
-            // Dibujar Operativos de la red
+            // Jugadores remotos de la red
             Object.keys(remotePlayers).forEach(id => {
                 let p = remotePlayers[id]; if (p.role === 'PENDING') return;
                 ctx.fillStyle = '#fff'; ctx.font = '10px monospace'; ctx.fillText(p.name, p.x - 20, p.y - 25);
                 ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.angle); ctx.fillStyle = p.role === 'AGENT' ? '#0055ff' : '#ffcc00'; ctx.beginPath(); ctx.arc(0, 0, 15, 0, Math.PI*2); ctx.fill();
-                if(p.weapon !== 'NONE') { ctx.fillStyle = '#fff'; ctx.fillRect(10, -3, 12, 5); } ctx.restore();
+                if(p.weapon !== 'NONE') { ctx.fillStyle = '#fff'; ctx.fillRect(10, -2, 10, 4); } ctx.restore();
             });
 
-            // Dibujar tu Avatar con rotación suave apuntando al mouse
+            // Tu Avatar con rotación dinámica y apuntado de armas acoplado
             ctx.fillStyle = '#00ffcc'; ctx.font = '10px monospace'; ctx.fillText(localPlayer.name + " (TÚ)", localPlayer.x - 25, localPlayer.y - 25);
             ctx.save(); ctx.translate(localPlayer.x, localPlayer.y); ctx.rotate(localPlayer.angle);
             ctx.fillStyle = localPlayer.role === 'AGENT' ? '#0055ff' : '#ffcc00'; ctx.beginPath(); ctx.arc(0, 0, 15, 0, Math.PI*2); ctx.fill();
             ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.stroke();
             
-            // Renderizar la mira física de la pistola o rifle acoplada al cuerpo
+            // Renderizar la cañón de la pistola/rifle mirando hacia el mouse
             if(localPlayer.weapon !== 'NONE') {
                 ctx.fillStyle = '#ffffff';
                 let wLength = localPlayer.weapon === 'RIFLE' ? 18 : 10;
