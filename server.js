@@ -12,18 +12,15 @@ app.get('/', (req, res) => {
 });
 
 let players = {};
-let robberies = {
-    bov_quimica: { locked: false, value: 1500 },
-    fab_uranio: { locked: false, value: 4500 }
-};
 
 io.on('connection', (socket) => {
     // Registrar operativo en la red de inmediato
     players[socket.id] = {
-        id: socket.id, name: "Anon_User", x: 250, y: 250, angle: 0, hp: 100, cash: 0, bag: 0, role: 'PENDING'
+        id: socket.id, name: "Anon_User", x: 250, y: 250, angle: 0, hp: 100, cash: 0, role: 'PENDING', weapon: 'NONE'
     };
 
-    socket.emit('init', { id: socket.id, players, robberies });
+    // Enviar señal de inicio oficial con el ID para desbloquear el canvas
+    socket.emit('init', { id: socket.id, players: players });
 
     socket.on('joinTeam', (data) => {
         if (players[socket.id]) {
