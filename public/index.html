@@ -10,22 +10,29 @@
         
         #canvas-game { display: block; position: absolute; top: 0; left: 0; z-index: 1; }
         
-        /* CAPA DE PARPADEO MAESTRO DE AUDIO */
-        #siren-overlay {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 999999; pointer-events: none; display: none;
-        }
+        #siren-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 999999; pointer-events: none; display: none; }
 
-        /* CONFIGURACIÓN DE NÚCLEO */
+        /* 🚨 NUEVA PANTALLA DE TÍTULO MAESTRA CON LETRAS ARCADE */
         #boot-screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: #020205; z-index: 9999999; display: flex; flex-direction: column;
-            justify-content: center; align-items: center; text-align: center;
+            justify-content: center; align-items: center; text-align: center; padding: 20px;
         }
+        
+        /* Estilo para las letras grandes de la imagen */
+        .title-arcade {
+            font-size: 11px; line-height: 1.2; color: #ff0055; font-weight: bold;
+            text-shadow: 0 0 10px #ff0055; white-space: pre; margin-bottom: 20px;
+            animation: glitchEffect 3s infinite;
+        }
+        @keyframes glitchEffect {
+            0%, 100% { opacity: 1; } 50% { opacity: 0.95; }
+        }
+
         .perf-btn {
             padding: 15px 30px; font-size: 15px; font-weight: bold; margin: 12px;
             border: 2px solid #ff0055; border-radius: 4px; cursor: pointer; text-transform: uppercase;
-            background: #111; color: #ff0055; transition: all 0.2s; width: 280px;
+            background: #111; color: #ff0055; transition: all 0.2s; width: 280px; z-index: 10000000;
         }
         #btn-perf-high:hover { background: #ff0055; color: white; box-shadow: 0 0 20px #ff0055; }
         #btn-perf-lite:hover { background: #00ffcc; color: black; border-color: #00ffcc; box-shadow: 0 0 20px #00ffcc; }
@@ -34,7 +41,7 @@
         #chase-actors { position: absolute; white-space: nowrap; font-size: 20px; animation: arcadeChase 1.5s linear infinite; left: -80px; }
         @keyframes arcadeChase { 0% { left: -80px; } 100% { left: 270px; } }
 
-        /* SELECCIÓN DE OPERATIVO */
+        /* SELECCIÓN DE BANDO CORREGIDA */
         #team-select {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
             background: #05050f; border: 2px solid #ff0055; padding: 35px;
@@ -45,50 +52,19 @@
         #btn-fugitive { background: #ffcc00; color: #000; box-shadow: 0 0 12px #ffcc00; }
         #btn-agent { background: #0055ff; color: #fff; box-shadow: 0 0 12px #0055ff; }
 
-        /* HUD SUPERIOR */
-        #hud {
-            position: absolute; top: 10px; left: 10px; z-index: 100;
-            background: rgba(5, 5, 10, 0.85); padding: 12px; border-radius: 4px;
-            font-size: 13px; border: 1px solid #ff0055; min-width: 240px; display: none;
-        }
+        /* HUD Y ADORNOS TRANSPARENTES */
+        #hud { position: absolute; top: 10px; left: 10px; z-index: 100; background: rgba(5, 5, 10, 0.85); padding: 12px; border-radius: 4px; font-size: 13px; border: 1px solid #ff0055; min-width: 240px; display: none; }
         .bar { background: #111; border-radius: 2px; height: 12px; width: 100px; display: inline-block; overflow: hidden; border: 1px solid #333; vertical-align: middle; }
         #hp-fill { background: #ff0055; height: 100%; width: 100%; transition: width 0.1s; }
-
-        #leaderboard {
-            position: absolute; top: 10px; right: 10px; z-index: 100;
-            background: rgba(5, 5, 10, 0.85); padding: 12px; border-radius: 4px;
-            font-size: 12px; border: 1px solid #00ffcc; width: 220px; display: none;
-        }
+        #leaderboard { position: absolute; top: 10px; right: 10px; z-index: 100; background: rgba(5, 5, 10, 0.85); padding: 12px; border-radius: 4px; font-size: 12px; border: 1px solid #00ffcc; width: 220px; display: none; }
         .leader-row { display: flex; justify-content: space-between; margin: 4px 0; }
-
-        /* GUÍA TRANSPARENTE */
-        #controls-guide {
-            position: absolute; bottom: 20px; left: 20px; z-index: 100;
-            background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(4px);
-            border: 1px solid rgba(255, 255, 255, 0.15); padding: 12px; border-radius: 6px;
-            font-size: 11px; color: rgba(255, 255, 255, 0.85); line-height: 1.6; display: none;
-            pointer-events: none;
-        }
+        #controls-guide { position: absolute; bottom: 20px; left: 20px; z-index: 100; background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(4px); border: 1px solid rgba(255, 255, 255, 0.15); padding: 12px; border-radius: 6px; font-size: 11px; color: rgba(255, 255, 255, 0.85); line-height: 1.6; display: none; pointer-events: none; }
         .guide-title { font-weight: bold; color: #00ffcc; margin-bottom: 4px; text-transform: uppercase; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 2px; }
 
-        /* HOTBAR INFERIOR */
-        #hotbar-container {
-            position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
-            z-index: 100; background: rgba(5, 5, 15, 0.75); backdrop-filter: blur(6px);
-            border: 2px solid #00ffcc; padding: 6px; border-radius: 8px;
-            display: none; justify-content: center; gap: 8px; box-shadow: 0 0 20px rgba(0, 255, 204, 0.2);
-        }
-        .hotbar-slot {
-            width: 55px; height: 55px; background: rgba(20, 20, 35, 0.6);
-            border: 1px solid rgba(0, 255, 204, 0.3); border-radius: 4px;
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-            cursor: pointer; position: relative; transition: all 0.15s;
-        }
+        #hotbar-container { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 100; background: rgba(5, 5, 15, 0.75); backdrop-filter: blur(6px); border: 2px solid #00ffcc; padding: 6px; border-radius: 8px; display: none; justify-content: center; gap: 8px; box-shadow: 0 0 20px rgba(0, 255, 204, 0.2); }
+        .hotbar-slot { width: 55px; height: 55px; background: rgba(20, 20, 35, 0.6); border: 1px solid rgba(0, 255, 204, 0.3); border-radius: 4px; display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: pointer; position: relative; transition: all 0.15s; }
         .hotbar-slot:hover { background: rgba(0, 255, 204, 0.15); border-color: #00ffcc; }
-        .hotbar-slot.active {
-            border: 2px solid #ff0055; background: rgba(255, 0, 85, 0.15);
-            box-shadow: 0 0 12px rgba(255, 0, 85, 0.4); transform: scale(1.05);
-        }
+        .hotbar-slot.active { border: 2px solid #ff0055; background: rgba(255, 0, 85, 0.15); box-shadow: 0 0 12px rgba(255, 0, 85, 0.4); transform: scale(1.05); }
         .slot-key { position: absolute; top: 2px; left: 4px; font-size: 9px; color: #666; font-weight: bold; }
         .slot-icon { font-size: 16px; margin-bottom: 1px; }
         .slot-name { font-size: 8px; text-transform: uppercase; color: #fff; text-align: center; }
@@ -97,22 +73,33 @@
 </head>
 <body>
 
-    <!-- Capa para el parpadeo de sirenas -->
     <div id="siren-overlay"></div>
 
+    <!-- 📺 PANTALLA PRINCIPAL CON NOMBRE ARCADE MODERNO -->
     <div id="boot-screen">
-        <h1 style="color: #ff0055; font-size: 22px; letter-spacing: 2px; text-shadow: 0 0 10px #ff0055;">🤖 CONFIGURACIÓN DE NÚCLEO</h1>
-        <p id="boot-text" style="color: #888; font-size: 11px; margin-top: 10px; margin-bottom: 15px;">Selecciona el modo de rendimiento optimizado para tu hardware.</p>
+<div class="title-arcade">
+███████╗████████╗██╗███╗   ██╗ ██████╗      ██████╗ ██████╗ ███████╗██████╗  ██████╗ ████████╗██╗ ██████╗ ███╗   ██╗
+██╔════╝╚══██╔══╝██║████╗  ██║██╔════╝     ██╔═══██╗██╔══██╗██╔════╝██╔══██╗██╔═══██╗╚══██╔══╝██║██╔═══██╗████╗  ██║
+███████╗   ██║   ██║██╔██╗ ██║██║  ███╗    ██║   ██║██████╔╝█████╗  ██████╔╝██║   ██║   ██║   ██║██║   ██║██╔██╗ ██║
+╚════██║   ██║   ██║██║╚██╗██║██║   ██║    ██║   ██║██╔═══╝ ██╔══╝  ██╔══██╗██║   ██║   ██║   ██║██║   ██║██║╚██╗██║
+███████║   ██║   ██║██║ ╚████║╚██████╔╝    ╚██████╔╝██║     ███████╗██║  ██║╚██████╔╝   ██║   ██║╚██████╔╝██║ ╚████║
+╚══════╝   ╚═╝   ╚═╝╚═╝  ╚═══╝ ╚═════╝      ╚═════╝ ╚═╝     ╚══════╝╚═╝  ╚═╝ ╚═════╝    ╚═╝   ╚═╝ ╚═════╝ ╚═╝  ╚═══╝
+</div>
+        <!-- Nombre del texto corregido según tu petición -->
+        <p id="boot-text" style="color: #00ffcc; font-size: 12px; margin-bottom: 25px; letter-spacing: 1px; font-weight: bold; animation: pulseText 1.5s infinite alternate;">[ SINCRONIZACIÓN DE NÚCLEO ]</p>
+        
         <button id="btn-perf-high" class="perf-btn">Gráficos Altos (PC Moderna)</button>
         <button id="btn-perf-lite" class="perf-btn">Rendimiento Lite (PC Clásica)</button>
+        
         <div id="chase-container"><div id="chase-actors">🏃‍♂️ 👮‍♂️</div></div>
     </div>
 
+    <!-- Menú de selección con texto corregido -->
     <div id="team-select">
         <h2 style="color: #ff0055; margin-bottom: 20px; letter-spacing: 2px;">SELECCIÓN DE OPERATIVO</h2>
         <button id="btn-fugitive" class="team-btn">Fugitivo (Escapa y Roba)</button>
         <button id="btn-agent" class="team-btn">Agente (Defiende y Caza)</button>
-        <p id="net-status" style="font-size: 10px; margin-top: 20px; color: #ff0055;">Sincronizando puente de datos...</p>
+        <p id="net-status" style="font-size: 11px; margin-top: 20px; color: #00ffcc; font-weight: bold;">[ CONFIGURACIÓN DE NÚCLEO ACTIVA ]</p>
     </div>
 
     <div id="controls-guide">
@@ -120,27 +107,14 @@
         <div>[W,A,S,D] Moverse por el Mapa</div>
         <div>[Mover Mouse] Apuntar Dirección</div>
         <div>[Clic Izq] Disparar Arma Activa</div>
-        <div>[1, 2, 3] Cambiar Armamiento</div>
     </div>
 
     <div id="hotbar-container">
-        <div id="slot-1" class="hotbar-slot active" onclick="switchSlot(1)">
-            <span class="slot-key">1</span>
-            <span class="slot-icon">👊</span>
-            <span class="slot-name">Puños</span>
-        </div>
-        <div id="slot-2" class="hotbar-slot" onclick="switchSlot(2)">
-            <span class="slot-key">2</span>
-            <span class="slot-icon">🔫</span>
-            <span class="slot-name">Primaria</span>
-        </div>
-        <div id="slot-3" class="hotbar-slot" onclick="switchSlot(3)">
-            <span class="slot-key">3</span>
-            <span class="slot-icon">⚡</span>
-            <span class="slot-name">Especial</span>
-        </div>
+        <div id="slot-1" class="hotbar-slot active" onclick="switchSlot(1)"><span class="slot-key">1</span><span class="slot-icon">👊</span><span class="slot-name">Puños</span></div>
+        <div id="slot-2" class="hotbar-slot" onclick="switchSlot(2)"><span class="slot-key">2</span><span class="slot-icon">🔫</span><span class="slot-name">Primaria</span></div>
+        <div id="slot-3" class="hotbar-slot" onclick="switchSlot(3)"><span class="slot-key">3</span><span class="slot-icon">⚡</span><span class="slot-name">Especial</span></div>
     </div>
-     <canvas id="canvas-game"></canvas>
+    <canvas id="canvas-game"></canvas>
 
     <script>
         let socket;
@@ -153,7 +127,6 @@
         const canvas = document.getElementById('canvas-game');
         const ctx = canvas.getContext('2d');
         
-        // Inicialización forzada de tamaño
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
 
@@ -162,6 +135,7 @@
         let bootScreenActive = true;
         let performanceMode = "HIGH"; 
         let activeSlot = 1; 
+        let audioCtxInstance = null;
 
         let localPlayer = { name: "Operativo", x: 250, y: 250, angle: 0, hp: 100, cash: 0, role: 'PENDING', weapon: 'NONE', isArrestedOnGround: false };
         let remotePlayers = {};
@@ -177,25 +151,78 @@
             banco: { x: 2800, y: 2200, w: 400, h: 350, color: '#1a1505', name: "Bóveda Central de Créditos" }
         };
 
-        function playTone(freq, duration) {
+        function initAudioContext() {
+            if (!audioCtxInstance) {
+                audioCtxInstance = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtxInstance.state === 'suspended') {
+                audioCtxInstance.resume();
+            }
+            return audioCtxInstance;
+        }
+
+        // 🎹 SINTETIZADOR DE MÚSICA CYBERPUNK EN SEGUNDO PLANO ULTRA LIGERO
+        function startBackgroundMusic() {
             if (performanceMode === "LITE") return;
             try {
-                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                const oscillator = audioCtx.createOscillator();
-                const gainNode = audioCtx.createGain();
-                oscillator.type = 'sine';
-                oscillator.frequency.setValueAtTime(freq, audioCtx.currentTime);
-                gainNode.gain.setValueAtTime(0.04, audioCtx.currentTime);
-                gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
-                oscillator.connect(gainNode); gainNode.connect(audioCtx.destination);
-                oscillator.start(); oscillator.stop(audioCtx.currentTime + duration);
+                const audioCtx = initAudioContext();
+                let beatCount = 0;
+                
+                setInterval(() => {
+                    if (!gameStarted && bootScreenActive) return;
+                    let time = audioCtx.currentTime;
+                    
+                    // Nota base del bajo cyberpunk
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'sawtooth';
+                    
+                    // Melodía cíclica de 4 pasos
+                    let notes =;
+                    let currentNote = notes[beatCount % 4];
+                    
+                    osc.frequency.setValueAtTime(currentNote, time);
+                    gain.gain.setValueAtTime(0.015, time);
+                    gain.gain.exponentialRampToValueAtTime(0.001, time + 0.22);
+                    
+                    osc.connect(gain); gain.connect(audioCtx.destination);
+                    osc.start(time); osc.stop(time + 0.25);
+                    
+                    // Añadir un contra-ritmo agudo cada 2 golpes
+                    if (beatCount % 2 === 0) {
+                        const hihat = audioCtx.createOscillator();
+                        const hGain = audioCtx.createGain();
+                        hihat.type = 'triangle';
+                        hihat.frequency.setValueAtTime(800, time + 0.12);
+                        hGain.gain.setValueAtTime(0.008, time + 0.12);
+                        hGain.gain.exponentialRampToValueAtTime(0.001, time + 0.18);
+                        hihat.connect(hGain); hGain.connect(audioCtx.destination);
+                        hihat.start(time + 0.12); hihat.stop(time + 0.18);
+                    }
+                    
+                    beatCount++;
+                }, 260); // Ritmo de tempo cyber regular
             } catch(e) {}
         }
 
-        // 🚨 EFECTO PREMIUM: SIRENAS POLICIALES CON PARPADEO ROJO Y AZUL
+        function playTone(freq, duration) {
+            if (performanceMode === "LITE") return;
+            try {
+                const audioCtx = initAudioContext();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.04, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.start(); osc.stop(audioCtx.currentTime + duration);
+            } catch(e) {}
+        }
+
         function playPoliceSiren() {
             try {
-                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const audioCtx = initAudioContext();
                 let time = audioCtx.currentTime;
                 const overlay = document.getElementById('siren-overlay');
                 overlay.style.display = 'block';
@@ -204,55 +231,46 @@
                     const osc = audioCtx.createOscillator();
                     const gain = audioCtx.createGain();
                     osc.type = 'sawtooth';
-                    // Frecuencia oscilante de patrulla
-                    let freq = i % 2 === 0 ? 600 : 900;
+                    let freq = i % 2 === 0 ? 650 : 950;
                     osc.frequency.setValueAtTime(freq, time);
                     gain.gain.setValueAtTime(0.03, time);
-                    gain.gain.exponentialRampToValueAtTime(0.001, time + 0.3);
-                    
+                    gain.gain.exponentialRampToValueAtTime(0.001, time + 0.28);
                     osc.connect(gain); gain.connect(audioCtx.destination);
-                    osc.start(time); osc.stop(time + 0.3);
+                    osc.start(time); osc.stop(time + 0.28);
 
-                    // Cambiar colores sincrónicamente con el audio
                     setTimeout(() => {
-                        overlay.style.backgroundColor = i % 2 === 0 ? 'rgba(0, 0, 255, 0.25)' : 'rgba(255, 0, 0, 0.25)';
-                    }, i * 300);
-
-                    time += 0.3;
+                        overlay.style.backgroundColor = i % 2 === 0 ? 'rgba(0, 85, 255, 0.25)' : 'rgba(255, 0, 85, 0.25)';
+                    }, i * 280);
+                    time += 0.28;
                 }
-                setTimeout(() => { overlay.style.display = 'none'; }, 1800);
+                setTimeout(() => { overlay.style.display = 'none'; }, 1680);
             } catch(e) {}
         }
 
-        // 🏃‍♂️ EFECTO PREMIUM: TIMBRE ELÉCTRICO DE RECREO/FUGA DE PRISIÓN
         function playPrisonBell() {
             try {
-                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const audioCtx = initAudioContext();
                 let time = audioCtx.currentTime;
                 const overlay = document.getElementById('siren-overlay');
                 overlay.style.display = 'block';
-                overlay.style.backgroundColor = 'rgba(255, 204, 0, 0.2)';
+                overlay.style.backgroundColor = 'rgba(255, 170, 0, 0.25)';
 
-                // Generar sonido metálico de campana de alarma repetitivo
-                for (let i = 0; i < 15; i++) {
+                for (let i = 0; i < 14; i++) {
                     const osc = audioCtx.createOscillator();
                     const gain = audioCtx.createGain();
                     osc.type = 'square';
-                    osc.frequency.setValueAtTime(400, time);
-                    gain.gain.setValueAtTime(0.04, time);
-                    gain.gain.exponentialRampToValueAtTime(0.001, time + 0.08);
-                    
+                    osc.frequency.setValueAtTime(380, time);
+                    gain.gain.setValueAtTime(0.035, time);
+                    gain.gain.exponentialRampToValueAtTime(0.001, time + 0.07);
                     osc.connect(gain); gain.connect(audioCtx.destination);
-                    osc.start(time); osc.stop(time + 0.08);
+                    osc.start(time); osc.stop(time + 0.07);
 
-                    // Parpadeo rápido de la alarma de escape
                     setTimeout(() => {
-                        overlay.style.opacity = i % 2 === 0 ? '1' : '0.3';
-                    }, i * 100);
-
-                    time += 0.1;
+                        overlay.style.opacity = i % 2 === 0 ? '1' : '0.25';
+                    }, i * 90);
+                    time += 0.09;
                 }
-                setTimeout(() => { overlay.style.display = 'none'; overlay.style.opacity = '1'; }, 1500);
+                setTimeout(() => { overlay.style.display = 'none'; overlay.style.opacity = '1'; }, 1300);
             } catch(e) {}
         }
 
@@ -260,15 +278,17 @@
         document.getElementById('btn-perf-lite').onclick = function() { performanceMode = "LITE"; triggerBoot(); };
 
         function triggerBoot() {
+            initAudioContext();
             playTone(587, 0.1);
-            document.getElementById('boot-text').innerText = `⚡ MÓDULO [${performanceMode}] SELECCIONADO. PREPARANDO ENTORNO...`;
-            document.getElementById('boot-text').style.color = performanceMode === "HIGH" ? "#ff0055" : "#00ffcc";
+            startBackgroundMusic(); // Arrancar la melodía rítmica
+            
+            document.getElementById('boot-text').innerText = "⚡ INICIALIZANDO COMPONENTES OPERATIVOS...";
             document.getElementById('btn-perf-high').style.display = "none";
             document.getElementById('btn-perf-lite').style.display = "none";
             document.getElementById('chase-container').style.display = "block";
             
             setTimeout(() => {
-                playTone(880, 0.15);
+                playTone(880, 0.12);
                 bootScreenActive = false;
                 document.getElementById('boot-screen').style.display = 'none';
                 document.getElementById('team-select').style.display = 'block';
@@ -293,7 +313,7 @@
         window.switchSlot = function(slotNum) {
             if(!gameStarted) return;
             activeSlot = slotNum;
-            playTone(700, 0.04);
+            playTone(650, 0.04);
             for(let i = 1; i <= 3; i++) { document.getElementById(`slot-${i}`).classList.remove('active'); }
             document.getElementById(`slot-${slotNum}`).classList.add('active');
             
@@ -304,43 +324,217 @@
 
         document.getElementById('btn-fugitive').onclick = function() { 
             playPrisonBell(); 
-            setTimeout(() => { selectTeam('FUGITIVE', 250, 250); }, 1500); 
+            setTimeout(() => { selectTeam('FUGITIVE', 250, 250); }, 1300); 
         };
         document.getElementById('btn-agent').onclick = function() { 
             playPoliceSiren(); 
-            setTimeout(() => { selectTeam('AGENT', 1950, 650); }, 1800); 
+            setTimeout(() => { selectTeam('AGENT', 1950, 650); }, 1680); 
         };
+function selectTeam(team, spawnX, spawnY) {
+            localPlayer.role = team; 
+            localPlayer.x = spawnX; 
+            localPlayer.y = spawnY;
+            
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            
+            gameStarted = true;
+            document.getElementById('team-select').style.display = 'none';
+            document.getElementById('hud').style.display = 'block';
+            document.getElementById('leaderboard').style.display = 'block';
+            document.getElementById('controls-guide').style.display = 'block';
+            document.getElementById('hotbar-container').style.display = 'flex';
+            
+            switchSlot(1);
+            
+            ctx.fillStyle = '#020205';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            socket.emit('joinTeam', { role: localPlayer.role, name: localPlayer.name, x: localPlayer.x, y: localPlayer.y });
+        }
 
-       function selectTeam(team, spawnX, spawnY) {
-    localPlayer.role = team; 
-    localPlayer.x = spawnX; 
-    localPlayer.y = spawnY;
-
-    // Forzar al navegador a recalcular el lienzo antes de pintar
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-
-    gameStarted = true;
-
-    document.getElementById('team-select').style.display = 'none';
-    document.getElementById('hud').style.display = 'block';
-    document.getElementById('leaderboard').style.display = 'block';
-    document.getElementById('controls-guide').style.display = 'block';
-    document.getElementById('hotbar-container').style.display = 'flex';
-
-    switchSlot(1);
-
-    // Limpieza inicial para evitar la pantalla negra
-    ctx.fillStyle = '#020205';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    socket.emit('joinTeam', { role: localPlayer.role, name: localPlayer.name, x: localPlayer.x, y: localPlayer.y });
-}
         socket.on('connect', () => {
-            document.getElementById('net-status').innerText = "✅ Canal de Red Sincronizado en Render";
+            document.getElementById('net-status').innerText = "✅ SISTEMA DE RED ASIGNADO CORRECTAMENTE";
             document.getElementById('net-status').style.color = "#00ffcc";
         });
+          socket.on('init', (data) => {
+            myId = data.id;
+            Object.keys(data.players).forEach(id => { if(id !== myId) remotePlayers[id] = data.players[id]; });
+        });
 
+        socket.on('newPlayer', (player) => { remotePlayers[player.id] = player; });
+        socket.on('playerMoved', (player) => { if(remotePlayers[player.id]) remotePlayers[player.id] = player; });
+        socket.on('playerDisconnected', (id) => { delete remotePlayers[id]; });
+        socket.on('enemyProjectile', (p) => { networkProjectiles.push(p); });
+
+        //Variables para controlar la música táctica de asalto
+        let robberyActive = false;
+        let robberyTimer = 0;
+        let robberyMusicInterval = null;
+
+        // 🚨 TIMING PREMIUM: SINTETIZADOR DE MÚSICA DE ASALTO ACELERADA (TEMPORIZADOR)
+        function startRobberyMusic() {
+            robberyActive = true;
+            robberyTimer = 30; // 30 segundos límite que dura la canción
+            playTone(150, 0.5); // Sonido sordo de inicio de alarma
+
+            robberyMusicInterval = setInterval(() => {
+                if (!gameStarted || !robberyActive) { clearInterval(robberyMusicInterval); return; }
+                
+                try {
+                    const audioCtx = initAudioContext();
+                    let time = audioCtx.currentTime;
+                    
+                    // Nota oscilante de tensión que sube de ritmo al estilo VIPER
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'sawtooth';
+                    
+                    // La música se vuelve más aguda y rápida en los últimos 10 segundos
+                    let baseFreq = robberyTimer > 10 ? 220 : 330;
+                    osc.frequency.setValueAtTime(baseFreq + (30 - robberyTimer) * 10, time);
+                    
+                    gain.gain.setValueAtTime(0.02, time);
+                    gain.gain.exponentialRampToValueAtTime(0.001, time + 0.3);
+                    osc.connect(gain); gain.connect(audioCtx.destination);
+                    osc.start(time); osc.stop(time + 0.3);
+                } catch(e) {}
+
+                robberyTimer--;
+                
+                // CONTROL DE CONDICIÓN DE VICTORIA AL ACABAR LA CANCIÓN
+                if (robberyTimer <= 0) {
+                    clearInterval(robberyMusicInterval);
+                    robberyActive = false;
+                    if (localPlayer.role === 'FUGITIVE') {
+                        localPlayer.cash += 15000;
+                        playTone(880, 0.4); // Bip de robo exitoso
+                        alert("💰 ¡ROBO COMPLETADO! Extrajiste $15,000 antes de que se acabara el tiempo de la canción.");
+                        localPlayer.x = 1000; localPlayer.y = 1500; // Teletransporte de escape a la armería
+                    }
+                }
+            }, 1000);
+        }
+
+        function update() {
+            if (!gameStarted) return;
+            let oldX = localPlayer.x; let oldY = localPlayer.y;
+            let speed = performanceMode === "LITE" ? 4.0 : 4.5;
+
+            if (keys['w']) localPlayer.y -= speed;
+            if (keys['s']) localPlayer.y += speed;
+            if (keys['a']) localPlayer.x -= speed;
+            if (keys['d']) localPlayer.x += speed;
+
+            localPlayer.x = Math.max(20, Math.min(MAP_SIZE - 20, localPlayer.x));
+            localPlayer.y = Math.max(20, Math.min(MAP_SIZE - 20, localPlayer.y));
+            
+            // Colisiones contra las paredes
+            let radius = 15;
+            Object.keys(zones).forEach(k => {
+                let z = zones[k];
+                if (localPlayer.x + radius > z.x && localPlayer.x - radius < z.x + z.w && localPlayer.y + radius > z.y && localPlayer.y - radius < z.y + z.h) { 
+                    localPlayer.x = oldX; localPlayer.y = oldY; 
+                }
+            });
+
+            // ACTIVACIÓN AUTOMÁTICA DEL ASALTO POR COORDENADAS (Nexo Financiero / Bóveda)
+            if (localPlayer.role === 'FUGITIVE' && !robberyActive) {
+                let b = zones.banco;
+                if (localPlayer.x > b.x && localPlayer.x < b.x + b.w && localPlayer.y > b.y && localPlayer.y < b.y + b.h) {
+                    startRobberyMusic();
+                }
+            }
+
+            // 🎯 PUNTERÍA DINÁMICA: Tu personaje sigue la dirección exacta del mouse
+            let sX = canvas.width / 2; let sY = canvas.height / 2;
+            localPlayer.angle = Math.atan2(mouseY - sY, mouseX - sX);
+
+            socket.emit('playerUpdate', { name: localPlayer.name, x: localPlayer.x, y: localPlayer.y, angle: localPlayer.angle, role: localPlayer.role, weapon: localPlayer.weapon });
+
+            localProjectiles.forEach((p, idx) => { p.x += p.vx; p.y += p.vy; p.life--; if (p.life <= 0) localProjectiles.splice(idx, 1); });
+            networkProjectiles.forEach((p, idx) => { p.x += p.vx; p.y += p.vy; p.life--; if (p.life <= 0) networkProjectiles.splice(idx, 1); });
+
+            let fugs = localPlayer.role === 'FUGITIVE' ? 1 : 0; let agents = localPlayer.role === 'AGENT' ? 1 : 0;
+            let leadHTML = `<div class="leader-row" style="color:#00ffcc;"><span>> ${localPlayer.name}</span><span>$${localPlayer.cash}</span></div>`;
+            Object.keys(remotePlayers).forEach(id => {
+                let rp = remotePlayers[id]; if(rp.role === 'PENDING') return;
+                if (rp.role === 'FUGITIVE') fugs++; if (rp.role === 'AGENT') agents++;
+                leadHTML += `<div class="leader-row" style="color:${rp.role === 'AGENT' ? '#0055ff' : '#ffcc00'};"><span>${rp.name || "Anon"}</span><span>$${rp.cash || 0}</span></div>`;
+            });
+            document.getElementById('count-fugs').innerText = fugs; document.getElementById('count-agents').innerText = agents;
+            document.getElementById('leaderboard-content').innerHTML = leadHTML;
+            document.getElementById('hp-fill').style.width = localPlayer.hp + '%';
+        }
+
+        // --- RENDERIZADO GRÁFICO MAESTRO ESTILO BANNER TÁCTICO VIPER 99 ---
+        function draw() {
+            if (!gameStarted) return;
+            
+            if (canvas.width !== window.innerWidth || canvas.height !== window.innerHeight) {
+                canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+            }
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            let camX = canvas.width / 2 - localPlayer.x; let camY = canvas.height / 2 - localPlayer.y;
+            ctx.save(); ctx.translate(camX, camY);
+
+            // Asfalto ciberpunk de fondo
+            ctx.fillStyle = '#020205'; ctx.fillRect(0, 0, MAP_SIZE, MAP_SIZE);
+            
+            // Líneas vectoriales de cuadrícula en HD para gama alta
+            if (performanceMode === "HIGH") {
+                ctx.strokeStyle = 'rgba(0, 255, 204, 0.03)'; ctx.lineWidth = 1;
+                for (let x = 0; x < MAP_SIZE; x += 100) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, MAP_SIZE); ctx.stroke(); }
+                for (let y = 0; y < MAP_SIZE; y += 100) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(MAP_SIZE, y); ctx.stroke(); }
+            }
+
+            // Pintar los mosaicos y texturas de cada base
+            Object.keys(zones).forEach(k => {
+                let z = zones[k];
+                
+                // Mosaicos del suelo según la zona
+                if (k === 'prision') { ctx.fillStyle = '#0d0a17'; } 
+                else if (k === 'comisaria') { ctx.fillStyle = '#040b24'; } 
+                else if (k === 'banco') { ctx.fillStyle = '#17140a'; }
+                else { ctx.fillStyle = '#08080d'; }
+                ctx.fillRect(z.x, z.y, z.w, z.h);
+
+                // Dibujar líneas de suelo tácticas en modo HIGH
+                if (performanceMode === "HIGH") {
+                    ctx.strokeStyle = k === 'comisaria' ? 'rgba(0, 85, 255, 0.12)' : 'rgba(255, 0, 85, 0.12)';
+                    ctx.lineWidth = 2;
+                    for (let sx = z.x; sx < z.x + z.w; sx += 40) { ctx.beginPath(); ctx.moveTo(sx, z.y); ctx.lineTo(sx, z.y + z.h); ctx.stroke(); }
+                }
+
+                // Bordes neón reforzados
+                ctx.strokeStyle = k === 'comisaria' ? '#0055ff' : '#ff0055';
+                if (k === 'armeria') ctx.strokeStyle = '#00ffcc';
+                ctx.lineWidth = 3; ctx.strokeRect(z.x, z.y, z.w, z.h);
+                
+                // TEXTOS INCLINADOS TIPO COMPETICIÓN MILITAR EN LOS LETREROS (Estilo VIPER)
+                ctx.save();
+                ctx.translate(z.x + 15, z.y + 25);
+                ctx.transform(1, 0, -0.15, 1, 0, 0); // Efecto de inclinación diagonal de la imagen
+                ctx.fillStyle = '#ffffff'; ctx.font = 'italic bold 11px Arial';
+                ctx.fillText(`⚡ ${z.name.toUpperCase()} ⚡`, 0, 0);
+                ctx.restore();
+            });
+
+            ctx.fillStyle = '#ff0055'; ctx.fillRect(vehicleSpawner.x - 15, vehicleSpawner.y - 10, 30, 20);
+
+            localProjectiles.forEach(p => { ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI*2); ctx.fill(); });
+            networkProjectiles.forEach(p => { ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI*2); ctx.fill(); });
+
+            // Dibujar agentes y fugitivos remotos
+            Object.keys(remotePlayers).forEach(id => {
+                let p = remotePlayers[id]; if (p.role === 'PENDING') return;
+                ctx.fillStyle = '#fff'; ctx.font = '10px monospace'; ctx.fillText(p.name, p.x - 20, p.y - 25);
+                ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.angle); ctx.fillStyle = p.role === 'AGENT' ? '#0055ff' : '#ffcc00'; ctx.beginPath(); ctx.arc(0, 0, 15, 0, Math.PI*2); ctx.fill();
+                if(p.weapon !== 'NONE') { ctx.fillStyle = '#fff'; ctx.fillRect(10, -2, 10, 4); } ctx.restore();
+            });
+            // Dibujar tu propio avatar con acople de arma direccional
+        javascript
         socket.on('init', (data) => {
             myId = data.id;
             Object.keys(data.players).forEach(id => { if(id !== myId) remotePlayers[id] = data.players[id]; });
@@ -351,15 +545,48 @@
         socket.on('playerDisconnected', (id) => { delete remotePlayers[id]; });
         socket.on('enemyProjectile', (p) => { networkProjectiles.push(p); });
 
-        function shoot() {
-            if (localPlayer.weapon === 'NONE') return;
-            let angle = localPlayer.angle;
-            let colorProj = localPlayer.role === 'AGENT' ? '#00ffff' : '#ff0055';
-            let damage = localPlayer.weapon === 'RIFLE' ? 35 : 15;
-            let proj = { x: localPlayer.x, y: localPlayer.y, vx: Math.cos(angle)*14, vy: Math.sin(angle)*14, life: 45, color: colorProj, size: 5, damage: damage, team: localPlayer.role };
-            localProjectiles.push(proj);
-            socket.emit('fireProjectile', { x: proj.x, y: proj.y, vx: proj.vx, vy: proj.vy, color: colorProj, size: 5, damage: damage, team: localPlayer.role });
-            playTone(localPlayer.weapon === 'RIFLE' ? 300 : 450, 0.05);
+        let robberyActive = false;
+        let robberyTimer = 0;
+        let robberyMusicInterval = null;
+
+        // 🚨 CRONÓMETRO MUSICAL DE ASALTO CYBERPUNK
+        function startRobberyMusic() {
+            robberyActive = true;
+            robberyTimer = 30; 
+            playTone(150, 0.5); 
+
+            robberyMusicInterval = setInterval(() => {
+                if (!gameStarted || !robberyActive) { clearInterval(robberyMusicInterval); return; }
+                
+                try {
+                    const audioCtx = initAudioContext();
+                    let time = audioCtx.currentTime;
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'sawtooth';
+                    
+                    let baseFreq = robberyTimer > 10 ? 220 : 330;
+                    osc.frequency.setValueAtTime(baseFreq + (30 - robberyTimer) * 10, time);
+                    
+                    gain.gain.setValueAtTime(0.02, time);
+                    gain.gain.exponentialRampToValueAtTime(0.001, time + 0.3);
+                    osc.connect(gain); gain.connect(audioCtx.destination);
+                    osc.start(time); osc.stop(time + 0.3);
+                } catch(e) {}
+
+                robberyTimer--;
+                
+                if (robberyTimer <= 0) {
+                    clearInterval(robberyMusicInterval);
+                    robberyActive = false;
+                    if (localPlayer.role === 'FUGITIVE') {
+                        localPlayer.cash += 15000;
+                        playTone(880, 0.4); 
+                        alert("💰 ¡ROBO COMPLETADO! Extrajiste \$15,000 antes de que se acabara la canción.");
+                        localPlayer.x = 1000; localPlayer.y = 1500; 
+                    }
+                }
+            }, 1000);
         }
 
         function update() {
@@ -383,9 +610,14 @@
                 }
             });
 
-            // Sincronización del ángulo de apuntado del mouse
-            let sX = canvas.width / 2;
-            let sY = canvas.height / 2;
+            if (localPlayer.role === 'FUGITIVE' && !robberyActive) {
+                let b = zones.banco;
+                if (localPlayer.x > b.x && localPlayer.x < b.x + b.w && localPlayer.y > b.y && localPlayer.y < b.y + b.h) {
+                    startRobberyMusic();
+                }
+            }
+
+            let sX = canvas.width / 2; let sY = canvas.height / 2;
             localPlayer.angle = Math.atan2(mouseY - sY, mouseX - sX);
 
             socket.emit('playerUpdate', { name: localPlayer.name, x: localPlayer.x, y: localPlayer.y, angle: localPlayer.angle, role: localPlayer.role, weapon: localPlayer.weapon });
@@ -404,7 +636,7 @@
             document.getElementById('leaderboard-content').innerHTML = leadHTML;
             document.getElementById('hp-fill').style.width = localPlayer.hp + '%';
         }
-
+             // --- MOTOR DE TEXTURAS VECTORIALES Y DIBUJO DE SUELOS HD ---
         function draw() {
             if (!gameStarted) return;
             
@@ -416,36 +648,46 @@
             let camX = canvas.width / 2 - localPlayer.x; let camY = canvas.height / 2 - localPlayer.y;
             ctx.save(); ctx.translate(camX, camY);
 
-            // Rejilla de asfalto ciberpunk de fondo
+            // Fondo espacial oscuro
             ctx.fillStyle = '#020205'; ctx.fillRect(0, 0, MAP_SIZE, MAP_SIZE);
             
+            // Rejilla de alta definición si la PC es moderna
             if (performanceMode === "HIGH") {
                 ctx.strokeStyle = 'rgba(0, 255, 204, 0.03)'; ctx.lineWidth = 1;
                 for (let x = 0; x < MAP_SIZE; x += 100) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, MAP_SIZE); ctx.stroke(); }
                 for (let y = 0; y < MAP_SIZE; y += 100) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(MAP_SIZE, y); ctx.stroke(); }
             }
 
-            // Renderizado de las baldosas tácticas de suelo
+            // Pintar los mosaicos y texturas de cada base según tu idea
             Object.keys(zones).forEach(k => {
                 let z = zones[k];
                 
+                // Mosaicos estructurales de fondo
                 if (k === 'prision') { ctx.fillStyle = '#0d0a17'; } 
                 else if (k === 'comisaria') { ctx.fillStyle = '#040b24'; } 
+                else if (k === 'banco') { ctx.fillStyle = '#17140a'; }
                 else { ctx.fillStyle = '#08080d'; }
                 ctx.fillRect(z.x, z.y, z.w, z.h);
 
+                // Dibujar líneas de suelo tácticas en modo HIGH
                 if (performanceMode === "HIGH") {
                     ctx.strokeStyle = k === 'comisaria' ? 'rgba(0, 85, 255, 0.12)' : 'rgba(255, 0, 85, 0.12)';
                     ctx.lineWidth = 2;
                     for (let sx = z.x; sx < z.x + z.w; sx += 40) { ctx.beginPath(); ctx.moveTo(sx, z.y); ctx.lineTo(sx, z.y + z.h); ctx.stroke(); }
                 }
 
+                // Bordes neón reforzados
                 ctx.strokeStyle = k === 'comisaria' ? '#0055ff' : '#ff0055';
                 if (k === 'armeria') ctx.strokeStyle = '#00ffcc';
                 ctx.lineWidth = 3; ctx.strokeRect(z.x, z.y, z.w, z.h);
                 
-                ctx.fillStyle = '#00ffcc'; ctx.font = 'bold 11px monospace';
-                ctx.fillText(`:: ${z.name.toUpperCase()} ::`, z.x + 12, z.y + 22);
+                // TEXTOS INCLINADOS TIPO COMPETICIÓN MILITAR (Estilo VIPER)
+                ctx.save();
+                ctx.translate(z.x + 15, z.y + 25);
+                ctx.transform(1, 0, -0.15, 1, 0, 0); // Efecto diagonal inclinado
+                ctx.fillStyle = '#ffffff'; ctx.font = 'italic bold 11px Arial';
+                ctx.fillText(`⚡ ${z.name.toUpperCase()} ⚡`, 0, 0);
+                ctx.restore();
             });
 
             ctx.fillStyle = '#ff0055'; ctx.fillRect(vehicleSpawner.x - 15, vehicleSpawner.y - 10, 30, 20);
@@ -453,6 +695,7 @@
             localProjectiles.forEach(p => { ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI*2); ctx.fill(); });
             networkProjectiles.forEach(p => { ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI*2); ctx.fill(); });
 
+            // Jugadores remotos de la red
             Object.keys(remotePlayers).forEach(id => {
                 let p = remotePlayers[id]; if (p.role === 'PENDING') return;
                 ctx.fillStyle = '#fff'; ctx.font = '10px monospace'; ctx.fillText(p.name, p.x - 20, p.y - 25);
@@ -460,12 +703,20 @@
                 if(p.weapon !== 'NONE') { ctx.fillStyle = '#fff'; ctx.fillRect(10, -2, 10, 4); } ctx.restore();
             });
 
-            // Tu avatar con rotación activa hacia el puntero del mouse
+            // Tu Avatar con rotación dinámica y apuntado de armas acoplado
             ctx.fillStyle = '#00ffcc'; ctx.font = '10px monospace'; ctx.fillText(localPlayer.name + " (TÚ)", localPlayer.x - 25, localPlayer.y - 25);
+            
+            // Si hay un asalto activo, dibujar el temporizador flotante en letras rojas gigantes
+            if (robberyActive) {
+                ctx.fillStyle = '#ff0055'; ctx.font = 'bold 20px Courier New';
+                ctx.fillText(`🚨 TIEMPO DE CANCIÓN: ${robberyTimer}s`, localPlayer.x - 110, localPlayer.y - 45);
+            }
+
             ctx.save(); ctx.translate(localPlayer.x, localPlayer.y); ctx.rotate(localPlayer.angle);
             ctx.fillStyle = localPlayer.role === 'AGENT' ? '#0055ff' : '#ffcc00'; ctx.beginPath(); ctx.arc(0, 0, 15, 0, Math.PI*2); ctx.fill();
             ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.stroke();
             
+            // El cañón de la pistola o rifle mira hacia el mouse
             if(localPlayer.weapon !== 'NONE') {
                 ctx.fillStyle = '#ffffff';
                 let wLength = localPlayer.weapon === 'RIFLE' ? 18 : 10;
