@@ -10,43 +10,44 @@
         
         #canvas-game { display: block; position: absolute; top: 0; left: 0; z-index: 1; }
         
-        /* BOTÓN DE BYPASS DE EMERGENCIA LOCAL */
+        /* 🚨 PANEL DE SELECCIÓN DE RENDIMIENTO DE HARDWARE */
         #boot-screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: #020205; z-index: 9999999; display: flex; flex-direction: column;
             justify-content: center; align-items: center; text-align: center;
         }
-        #btn-boot {
-            padding: 20px 40px; font-size: 18px; font-weight: bold; background: #ff0055;
-            color: white; border: none; border-radius: 4px; cursor: pointer;
-            box-shadow: 0 0 20px #ff0055; text-transform: uppercase; margin-top: 20px;
+        .perf-btn {
+            padding: 15px 30px; font-size: 15px; font-weight: bold; margin: 12px;
+            border: 2px solid #ff0055; border-radius: 4px; cursor: pointer; text-transform: uppercase;
+            background: #111; color: #ff0055; transition: all 0.2s; width: 280px;
         }
-        #btn-boot:hover { background: #fff; color: #000; box-shadow: 0 0 25px #fff; }
+        #btn-perf-high:hover { background: #ff0055; color: white; box-shadow: 0 0 20px #ff0055; }
+        #btn-perf-lite:hover { background: #00ffcc; color: black; border-color: #00ffcc; box-shadow: 0 0 20px #00ffcc; }
 
         /* Contenedor de la persecución arcade */
         #chase-container {
-            width: 300px; height: 50px; position: relative; margin-top: 25px;
+            width: 250px; height: 40px; position: relative; margin-top: 25px;
             overflow: hidden; border-bottom: 2px dashed #ff0055; display: none;
         }
         #chase-actors {
-            position: absolute; white-space: nowrap; font-size: 24px;
-            animation: arcadeChase 1.5s linear infinite; left: -100px;
+            position: absolute; white-space: nowrap; font-size: 20px;
+            animation: arcadeChase 1.5s linear infinite; left: -80px;
         }
-        @keyframes arcadeChase { 0% { left: -100px; } 100% { left: 320px; } }
+        @keyframes arcadeChase { 0% { left: -80px; } 100% { left: 270px; } }
 
-        /* Menú de Selección Táctico */
+        /* Menú de Selección de Bando */
         #team-select {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            background: #05050f; border: 2px solid #ff0055; padding: 40px;
-            border-radius: 8px; text-align: center; z-index: 99999; box-shadow: 0 0 30px rgba(255,0,85,0.5);
-            width: 450px; display: none;
+            background: #05050f; border: 2px solid #ff0055; padding: 35px;
+            border-radius: 8px; text-align: center; z-index: 99999; box-shadow: 0 0 25px rgba(255,0,85,0.4);
+            width: 420px; display: none;
         }
         .team-btn {
-            padding: 15px 30px; font-size: 16px; font-weight: bold; margin: 15px;
+            padding: 12px 25px; font-size: 15px; font-weight: bold; margin: 12px;
             border: none; border-radius: 4px; cursor: pointer; text-transform: uppercase;
         }
-        #btn-fugitive { background: #ffcc00; color: #000; box-shadow: 0 0 15px #ffcc00; }
-        #btn-agent { background: #0055ff; color: #fff; box-shadow: 0 0 15px #0055ff; }
+        #btn-fugitive { background: #ffcc00; color: #000; box-shadow: 0 0 12px #ffcc00; }
+        #btn-agent { background: #0055ff; color: #fff; box-shadow: 0 0 12px #0055ff; }
 
         /* HUD Superior */
         #hud {
@@ -68,10 +69,13 @@
 </head>
 <body>
 
+    <!-- Selector de Rendimiento de Hardware Inicial -->
     <div id="boot-screen">
-        <h1 style="color: #ff0055; font-size: 24px; letter-spacing: 2px; text-shadow: 0 0 10px #ff0055;">🤖 INICIALIZANDO INTERFAZ LOCAL</h1>
-        <p id="boot-text" style="color: #888; font-size: 12px; margin-top: 10px;">Haz clic abajo para activar los sistemas sin pasar por las restricciones de red.</p>
-        <button id="btn-boot">Sincronizar Canal</button>
+        <h1 style="color: #ff0055; font-size: 22px; letter-spacing: 2px; text-shadow: 0 0 10px #ff0055;">🤖 CONFIGURACIÓN DE NÚCLEO</h1>
+        <p id="boot-text" style="color: #888; font-size: 11px; margin-top: 10px; margin-bottom: 15px;">Selecciona el modo de rendimiento optimizado para tu hardware.</p>
+        
+        <button id="btn-perf-high" class="perf-btn">Gráficos Altos (PC Moderna)</button>
+        <button id="btn-perf-lite" class="perf-btn">Rendimiento Lite (PC Clásica)</button>
         
         <div id="chase-container">
             <div id="chase-actors">🏃‍♂️ 👮‍♂️</div>
@@ -82,9 +86,9 @@
         <h2 style="color: #ff0055; margin-bottom: 20px; letter-spacing: 2px;">SELECCIÓN DE OPERATIVO</h2>
         <button id="btn-fugitive" class="team-btn">Fugitivo (Escapa y Roba)</button>
         <button id="btn-agent" class="team-btn">Agente (Defiende y Caza)</button>
-        <p id="net-status" style="font-size: 10px; margin-top: 20px; color: #ff0055;">Sincronizando de forma local en tu pantalla...</p>
-    </div> 
-    <div id="hud">
+        <p id="net-status" style="font-size: 10px; margin-top: 20px; color: #ff0055;">Sincronizando puente de datos...</p>
+    </div>
+     <div id="hud">
         <div style="display:flex; justify-content:space-between; margin-bottom:5px; font-weight:bold;">
             <span style="color:#ffcc00;">🏃‍♂️ Fugs: <span id="count-fugs">0</span></span>
             <span style="color:#0055ff;">👮‍♂️ Agents: <span id="count-agents">0</span></span>
@@ -95,7 +99,7 @@
         <div>Arma Equipada: <span id="txt-weapon" style="color:#ff0055; font-weight:bold;">NINGUNA</span></div>
         <div>Integridad: <div class="bar"><div id="hp-fill"></div></div></div>
         <div id="hud-bag-container">Mochila Cyber: <div class="bar"><div id="bag-fill"></div></div></div>
-        <div id="hud-cash-container">Créditos Net: <span id="txt-cash" style="color:#00ffcc;">$0</span></div>
+        <div id="hud-cash-container">Créditos Net: <span id="txt-cash" style="color:#00ffcc;">\$0</span></div>
         <hr style="margin:6px 0; border-color:#ff0055;">
         <div id="cooldowns-info" style="font-size:11px; color:#888;"></div>
     </div>
@@ -108,12 +112,11 @@
     <canvas id="canvas-game"></canvas>
 
     <script>
-        // Sistema inteligente: intenta conectar a Render, pero si falla, corre de forma local instantánea
+        // Bypass inteligente de red local / externa
         let socket;
         try {
             socket = io("https://onrender.com");
         } catch(e) {
-            console.log("Activando puente de datos simulado sin conexión.");
             socket = { emit: function(){}, on: function(){} };
         }
         
@@ -123,11 +126,12 @@
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
 
-        let myId = "local_player";
+        let myId = "player_" + Math.floor(Math.random()*1000);
         let gameStarted = false;
         let bootScreenActive = true;
+        let performanceMode = "HIGH"; // HIGH o LITE
 
-        let localPlayer = { name: "Operativo_Local", x: 250, y: 250, angle: 0, hp: 100, cash: 0, bag: 0, maxBag: 1500, role: 'PENDING', vehicle: null, weapon: 'NONE', isStunned: false, stunEnd: 0, isDead: false, isArrestedOnGround: false };
+        let localPlayer = { name: "Operativo", x: 250, y: 250, angle: 0, hp: 100, cash: 0, bag: 0, maxBag: 1500, role: 'PENDING', vehicle: null, weapon: 'NONE', isStunned: false, stunEnd: 0, isDead: false, isArrestedOnGround: false };
         let remotePlayers = {};
         let serverRobberies = {};
 
@@ -145,36 +149,46 @@
         let prisonEscaped = false;
 
         function playTone(freq, duration) {
+            if (performanceMode === "LITE") return; // Apagar ruidos pesados si es PC clásica para ahorrar CPU
             try {
                 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 const oscillator = audioCtx.createOscillator();
                 const gainNode = audioCtx.createGain();
                 oscillator.type = 'sine';
                 oscillator.frequency.setValueAtTime(freq, audioCtx.currentTime);
-                gainNode.gain.setValueAtTime(0.06, audioCtx.currentTime);
+                gainNode.gain.setValueAtTime(0.05, audioCtx.currentTime);
                 gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
-                oscillator.connect(gainNode);
-                gainNode.connect(audioCtx.destination);
+                oscillator.connect(gainNode); gainNode.connect(audioCtx.destination);
                 oscillator.start(); oscillator.stop(audioCtx.currentTime + duration);
             } catch(e) {}
         }
 
-        // DISPARADOR MAESTRO LOCAL
-        document.getElementById('btn-boot').onclick = function() {
+        // CONTROLADORES DEL SELECTOR DE TU IDEA
+        document.getElementById('btn-perf-high').onclick = function() {
+            performanceMode = "HIGH";
+            triggerBoot();
+        };
+
+        document.getElementById('btn-perf-lite').onclick = function() {
+            performanceMode = "LITE";
+            triggerBoot();
+        };
+
+        function triggerBoot() {
             playTone(587, 0.1);
-            document.getElementById('boot-text').innerText = "⚡ BYPASS ACTIVO: GENERANDO CANAL OFFLINE...";
-            document.getElementById('boot-text').style.color = "#ffcc00";
-            document.getElementById('btn-boot').style.display = "none";
+            document.getElementById('boot-text').innerText = `⚡ MÓDULO [${performanceMode}] SELECCIONADO. COMPILANDO ESCENARIO...`;
+            document.getElementById('boot-text').style.color = performanceMode === "HIGH" ? "#ff0055" : "#00ffcc";
+            document.getElementById('btn-perf-high').style.display = "none";
+            document.getElementById('btn-perf-lite').style.display = "none";
             document.getElementById('chase-container').style.display = "block";
             
-            // Animación arcade garantizada por 1.5 segundos
             setTimeout(() => {
                 playTone(880, 0.15);
                 bootScreenActive = false;
                 document.getElementById('boot-screen').style.display = 'none';
                 document.getElementById('team-select').style.display = 'block';
-            }, 1500);
-        };
+            }, 1800);
+        }
 
         const keys = {}; let mouseX = 0, mouseY = 0;
         window.addEventListener('keydown', e => { if (gameStarted) keys[e.key.toLowerCase()] = true; });
@@ -197,8 +211,7 @@
         socket.on('connect', () => {
             document.getElementById('net-status').innerText = "✅ Canal de Red Sincronizado en Render";
             document.getElementById('net-status').style.color = "#00ffcc";
-        });
-        ocket.on('init', (data) => {
+        });socket.on('init', (data) => {
             myId = data.id; serverRobberies = data.robberies;
             Object.keys(data.players).forEach(id => { if(id !== myId) remotePlayers[id] = data.players[id]; });
         });
@@ -210,7 +223,8 @@
         function update() {
             if (!gameStarted) return;
             let oldX = localPlayer.x; let oldY = localPlayer.y;
-            let currentSpeed = 4.5;
+            // Si es PC clásica, bajamos un poco la velocidad de refresco física para no ahogar el procesador
+            let currentSpeed = performanceMode === "LITE" ? 4.0 : 4.5;
 
             if (keys['w']) localPlayer.y -= currentSpeed; if (keys['s']) localPlayer.y += currentSpeed;
             if (keys['a']) localPlayer.x -= currentSpeed; if (keys['d']) localPlayer.x += currentSpeed;
@@ -240,83 +254,46 @@
             document.getElementById('leaderboard-content').innerHTML = leadHTML;
         }
 
+        // --- RENDERIZADO DEL MAPA OPTIMIZADO PARA DOBLE HARDWARE ---
         function draw() {
             if (!gameStarted) return; ctx.clearRect(0, 0, canvas.width, canvas.height);
             let camX = canvas.width / 2 - localPlayer.x; let camY = canvas.height / 2 - localPlayer.y;
-            ctx.save(); ctx.translate(camX, camY); ctx.fillStyle = '#020205'; ctx.fillRect(0, 0, MAP_SIZE, MAP_SIZE);
+            ctx.save(); ctx.translate(camX, camY); 
+            
+            // Color de fondo espacial
+            ctx.fillStyle = '#020205'; ctx.fillRect(0, 0, MAP_SIZE, MAP_SIZE);
 
+            // Dibujar los edificios neón con el fix z.w impecable
             Object.keys(zones).forEach(k => {
-                let z = zones[k]; ctx.fillStyle = z.color; ctx.fillRect(z.x, z.y, z.w, z.h); // Línea 412 Fix z.w impecable
+                let z = zones[k]; ctx.fillStyle = z.color; ctx.fillRect(z.x, z.y, z.w, z.h);
                 ctx.strokeStyle = '#ff0055'; if (k === 'armeria') ctx.strokeStyle = '#00ffcc';
-                ctx.lineWidth = 3; ctx.strokeRect(z.x, z.y, z.w, z.h); ctx.fillStyle = '#00ffcc'; ctx.font = 'bold 12px monospace'; ctx.fillText(`:: ${z.name.toUpperCase()} ::`, z.x + 15, z.y + 25);
+                ctx.lineWidth = performanceMode === "LITE" ? 1.5 : 3; // Menos grosor = Menos cálculo gráfico
+                ctx.strokeRect(z.x, z.y, z.w, z.h); 
+                
+                // Solo renderizar textos pesados en la PC moderna para mantener estables los FPS del Core 2
+                if (performanceMode === "HIGH") {
+                    ctx.fillStyle = '#00ffcc'; ctx.font = 'bold 12px monospace'; 
+                    ctx.fillText(`:: ${z.name.toUpperCase()} ::`, z.x + 15, z.y + 25);
+                }
             });
 
+            // Dibujar jugadores remotos
             Object.keys(remotePlayers).forEach(id => {
                 let p = remotePlayers[id]; if (p.role === 'PENDING') return;
                 ctx.fillStyle = '#fff'; ctx.font = '10px monospace'; ctx.fillText(p.name, p.x - 20, p.y - 25);
                 ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.angle); ctx.fillStyle = p.role === 'AGENT' ? '#0055ff' : '#ffcc00'; ctx.beginPath(); ctx.arc(0, 0, 15, 0, Math.PI*2); ctx.fill(); ctx.restore();
             });
 
+            // Dibujar a tu propio jugador
             ctx.fillStyle = '#00ffcc'; ctx.font = '10px monospace'; ctx.fillText(localPlayer.name, localPlayer.x - 20, localPlayer.y - 25);
             ctx.save(); ctx.translate(localPlayer.x, localPlayer.y); ctx.rotate(localPlayer.angle); ctx.fillStyle = localPlayer.role === 'AGENT' ? '#0055ff' : '#ffcc00'; ctx.beginPath(); ctx.arc(0, 0, 15, 0, Math.PI*2); ctx.fill(); ctx.restore();
             ctx.restore();
         }
 
-        function mainLoop() { update(); unction draw() {
-            if (!gameStarted) return;
-            
-            // Forzar que el lienzo se adapte al tamaño real de tu pantalla actual
-            if (canvas.width !== window.innerWidth || canvas.height !== window.innerHeight) {
-                canvas.width = window.innerWidth;
-                canvas.height = window.innerHeight;
-            }
-
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            // Centrar la cámara obligatoriamente en el jugador local
-            let camX = canvas.width / 2 - localPlayer.x; 
-            let camY = canvas.height / 2 - localPlayer.y;
-
-            ctx.save(); 
-            ctx.translate(camX, camY); 
-            
-            // Pintar el fondo del mapa de un color gris espacial para saber si renderiza
-            ctx.fillStyle = '#06060c'; 
-            ctx.fillRect(0, 0, MAP_SIZE, MAP_SIZE);
-
-            // Dibujar los edificios neón con el fix z.w asegurado
-            Object.keys(zones).forEach(k => {
-                let z = zones[k]; 
-                ctx.fillStyle = z.color; 
-                ctx.fillRect(z.x, z.y, z.w, z.h); 
-                ctx.strokeStyle = '#ff0055'; 
-                if (k === 'armeria') ctx.strokeStyle = '#00ffcc';
-                ctx.lineWidth = 3; 
-                ctx.strokeRect(z.x, z.y, z.w, z.h); 
-                ctx.fillStyle = '#00ffcc'; 
-                ctx.font = 'bold 12px monospace'; 
-                ctx.fillText(`:: ${z.name.toUpperCase()} ::`, z.x + 15, z.y + 25);
-            });
-
-            // Dibujar a tu propio jugador (Círculo Neón visible por encima de todo)
-            ctx.fillStyle = '#00ffcc'; 
-            ctx.font = '12px monospace'; 
-            ctx.fillText(localPlayer.name, localPlayer.x - 20, localPlayer.y - 25);
-
-            ctx.save(); 
-            ctx.translate(localPlayer.x, localPlayer.y); 
-            ctx.rotate(localPlayer.angle); 
-            ctx.fillStyle = localPlayer.role === 'AGENT' ? '#0055ff' : '#ffcc00'; 
-            ctx.beginPath(); 
-            ctx.arc(0, 0, 15, 0, Math.PI * 2); 
-            ctx.fill(); 
-            ctx.strokeStyle = '#fff';
-            ctx.lineWidth = 2;
-            ctx.stroke();
-            ctx.restore();
-            
-            ctx.restore();
-        }; requestAnimationFrame(mainLoop); }
+        function mainLoop() { 
+            update(); draw(); 
+            requestAnimationFrame(mainLoop); 
+        }
         mainLoop();
     </script>
 </body>
