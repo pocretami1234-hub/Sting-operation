@@ -366,154 +366,89 @@
             document.getElementById('net-status').innerText = "✅ Canal de Red Sincronizado en Render";
             document.getElementById('net-status').style.color = "#00ffcc";
         });
-         socket.on('init', (data) => {
-            myId = data.id;
+          socket.on('init', (data) => {
+            myId = data.id; serverRobberies = data.robberies;
             Object.keys(data.players).forEach(id => { if(id !== myId) remotePlayers[id] = data.players[id]; });
         });
 
         socket.on('newPlayer', (player) => { remotePlayers[player.id] = player; });
         socket.on('playerMoved', (player) => { if(remotePlayers[player.id]) remotePlayers[player.id] = player; });
         socket.on('playerDisconnected', (id) => { delete remotePlayers[id]; });
-        socket.on('enemyProjectile', (p) => { networkProjectiles.push(p); });
-
-        function shoot() {
-            if (localPlayer.weapon === 'NONE') return;
-            let angle = localPlayer.angle;
-            let colorProj = localPlayer.role === 'AGENT' ? '#00ffff' : '#ff0055';
-            let damage = localPlayer.weapon === 'RIFLE' ? 35 : 15;
-            let proj = { x: localPlayer.x, y: localPlayer.y, vx: Math.cos(angle)*14, vy: Math.sin(angle)*14, life: 45, color: colorProj, size: 5, damage: damage, team: localPlayer.role };
-            localProjectiles.push(proj);
-            socket.emit('fireProjectile', { x: proj.x, y: proj.y, vx: proj.vx, vy: proj.vy, color: colorProj, size: 5, damage: damage, team: localPlayer.role });
-            playTone(localPlayer.weapon === 'RIFLE' ? 300 : 450, 0.05);
-        }
 
         function update() {
             if (!gameStarted) return;
             let oldX = localPlayer.x; let oldY = localPlayer.y;
-            let speed = 4.5;
+            // Si es PC clásica, bajamos un poco la velocidad de refresco física para no ahogar el procesador
+            let currentSpeed = performanceMode === "LITE" ? 4.0 : 4.5;
 
-            if (keys['w']) localPlayer.y -= speed;
-            if (keys['s']) localPlayer.y += speed;
-            if (keys['a']) localPlayer.x -= speed;
-            if (keys['d']) localPlayer.x += speed;
+            if (keys['w']) localPlayer.y -= currentSpeed; if (keys['s']) localPlayer.y += currentSpeed;
+            if (keys['a']) localPlayer.x -= currentSpeed; if (keys['d']) localPlayer.x += currentSpeed;
 
-            localPlayer.x = Math.max(20, Math.min(MAP_SIZE - 20, localPlayer.x));
-            localPlayer.y = Math.max(20, Math.min(MAP_SIZE - 20, localPlayer.y));
+            localPlayer.x = Math.max(20, Math.min(MAP_SIZE - 20, localPlayer.x)); localPlayer.y = Math.max(20, Math.min(MAP_SIZE - 20, localPlayer.y));
             
-            // Colisiones contra las estructuras fijas
             let radius = 15;
             Object.keys(zones).forEach(k => {
                 let z = zones[k];
+                if (k === 'prision' && prisonEscaped) return;
                 if (localPlayer.x + radius > z.x && localPlayer.x - radius < z.x + z.w && localPlayer.y + radius > z.y && localPlayer.y - radius < z.y + z.h) { 
                     localPlayer.x = oldX; localPlayer.y = oldY; 
                 }
             });
 
-            // 🎯 ROTACIÓN DINÁMICA: Tu personaje ahora sigue la punta exacta de tu mouse
-            let sX = canvas.width / 2;
-            let sY = canvas.height / 2;
-            localPlayer.angle = Math.atan2(mouseY - sY, mouseX - sX);
-
-            socket.emit('playerUpdate', { name: localPlayer.name, x: localPlayer.x, y: localPlayer.y, angle: localPlayer.angle, role: localPlayer.role, weapon: localPlayer.weapon });
-
-            localProjectiles.forEach((p, idx) => { p.x += p.vx; p.y += p.vy; p.life--; if (p.life <= 0) localProjectiles.splice(idx, 1); });
-            networkProjectiles.forEach((p, idx) => { p.x += p.vx; p.y += p.vy; p.life--; if (p.life <= 0) networkProjectiles.splice(idx, 1); });
+            localPlayer.angle = Math.atan2(mouseX - canvas.width/2, mouseY - canvas.height/2);
+            socket.emit('playerUpdate', { name: localPlayer.name, x: localPlayer.x, y: localPlayer.y, angle: localPlayer.angle, vehicle: localPlayer.vehicle, bag: localPlayer.bag, role: localPlayer.role, cash: localPlayer.cash, isArrestedOnGround: localPlayer.isArrestedOnGround });
 
             let fugs = localPlayer.role === 'FUGITIVE' ? 1 : 0; let agents = localPlayer.role === 'AGENT' ? 1 : 0;
             let leadHTML = `<div class="leader-row" style="color:#00ffcc;"><span>> ${localPlayer.name}</span><span>$${localPlayer.cash}</span></div>`;
             Object.keys(remotePlayers).forEach(id => {
                 let rp = remotePlayers[id]; if(rp.role === 'PENDING') return;
-                if (rp.role === 'FUGITIVE') fugs++; if (rp.role === 'AGENT') agents++;
-                leadHTML += `<div class="leader-row" style="color:${rp.role === 'AGENT' ? '#0055ff' : '#ffcc00'};"><span>${rp.name || "Anon"}</span><span>$0</span></div>`;
+                if(rp.role === 'FUGITIVE') fugs++; if(rp.role === 'AGENT') agents++;
+                leadHTML += `<div class="leader-row" style="color:${rp.role === 'AGENT' ? '#0055ff' : '#ffcc00'};"><span>${rp.name || "Anon"}</span><span>$${rp.cash || 0}</span></div>`;
             });
             document.getElementById('count-fugs').innerText = fugs; document.getElementById('count-agents').innerText = agents;
             document.getElementById('leaderboard-content').innerHTML = leadHTML;
-            document.getElementById('hp-fill').style.width = localPlayer.hp + '%';
         }
 
-        // --- MOTOR RENDIMIENTO HD Y DIBUJO DE LOS SUELOS MAPA ---
-       function draw() {
-            if (!gameStarted) return;
-            
-            if (canvas.width !== window.innerWidth || canvas.height !== window.innerHeight) {
-                canvas.width = window.innerWidth; canvas.height = window.innerHeight;
-            }
-
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        // --- RENDERIZADO DEL MAPA OPTIMIZADO PARA DOBLE HARDWARE ---
+        function draw() {
+            if (!gameStarted) return; ctx.clearRect(0, 0, canvas.width, canvas.height);
             let camX = canvas.width / 2 - localPlayer.x; let camY = canvas.height / 2 - localPlayer.y;
-            ctx.save(); ctx.translate(camX, camY);
-
-            // Fondo negro del espacio cyber
-            ctx.fillStyle = '#020205'; ctx.fillRect(0, 0, MAP_SIZE, MAP_SIZE);
+            ctx.save(); ctx.translate(camX, camY); 
             
-            // Rejilla de alta definición si la PC es moderna
-            if (performanceMode === "HIGH") {
-                ctx.strokeStyle = 'rgba(0, 255, 204, 0.03)'; ctx.lineWidth = 1;
-                for (let x = 0; x < MAP_SIZE; x += 100) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, MAP_SIZE); ctx.stroke(); }
-                for (let y = 0; y < MAP_SIZE; y += 100) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(MAP_SIZE, y); ctx.stroke(); }
-            }
+            // Color de fondo espacial
+            ctx.fillStyle = '#020205'; ctx.fillRect(0, 0, MAP_SIZE, MAP_SIZE);
 
-            // Suelos y baldosas HD según tu idea
+            // Dibujar los edificios neón con el fix z.w impecable
             Object.keys(zones).forEach(k => {
-                let z = zones[k];
+                let z = zones[k]; ctx.fillStyle = z.color; ctx.fillRect(z.x, z.y, z.w, z.h);
+                ctx.strokeStyle = '#ff0055'; if (k === 'armeria') ctx.strokeStyle = '#00ffcc';
+                ctx.lineWidth = performanceMode === "LITE" ? 1.5 : 3; // Menos grosor = Menos cálculo gráfico
+                ctx.strokeRect(z.x, z.y, z.w, z.h); 
                 
-                // Colores de los mosaicos de fondo
-                if (k === 'prision') { ctx.fillStyle = '#0d0a17'; } 
-                else if (k === 'comisaria') { ctx.fillStyle = '#040b24'; } 
-                else if (k === 'banco') { ctx.fillStyle = '#17140a'; }
-                else { ctx.fillStyle = '#08080d'; }
-                ctx.fillRect(z.x, z.y, z.w, z.h);
-
-                // Líneas de suelo tácticas en modo HIGH
+                // Solo renderizar textos pesados en la PC moderna para mantener estables los FPS del Core 2
                 if (performanceMode === "HIGH") {
-                    ctx.strokeStyle = k === 'comisaria' ? 'rgba(0, 85, 255, 0.12)' : 'rgba(255, 0, 85, 0.12)';
-                    ctx.lineWidth = 2;
-                    for (let sx = z.x; sx < z.x + z.w; sx += 40) { ctx.beginPath(); ctx.moveTo(sx, z.y); ctx.lineTo(sx, z.y + z.h); ctx.stroke(); }
+                    ctx.fillStyle = '#00ffcc'; ctx.font = 'bold 12px monospace'; 
+                    ctx.fillText(`:: ${z.name.toUpperCase()} ::`, z.x + 15, z.y + 25);
                 }
-
-                // Bordes neón de las bases
-                ctx.fillStyle = z.color; ctx.fillRect(z.x, z.y, z.w, z.h);
-                ctx.strokeStyle = k === 'comisaria' ? '#0055ff' : '#ff0055';
-                if (k === 'armeria') ctx.strokeStyle = '#00ffcc';
-                ctx.lineWidth = 3; ctx.strokeRect(z.x, z.y, z.w, z.h);
-                
-                // Letreros inclinados tipo VIPER 99
-                ctx.save();
-                ctx.translate(z.x + 15, z.y + 25);
-                ctx.transform(1, 0, -0.15, 1, 0, 0);
-                ctx.fillStyle = '#00ffcc'; ctx.font = 'bold 11px monospace';
-                ctx.fillText(`:: ${z.name.toUpperCase()} ::`, 0, 0);
-                ctx.restore();
             });
 
-            ctx.fillStyle = '#ff0055'; ctx.fillRect(vehicleSpawner.x - 15, vehicleSpawner.y - 10, 30, 20);
-
-            localProjectiles.forEach(p => { ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI*2); ctx.fill(); });
-            networkProjectiles.forEach(p => { ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI*2); ctx.fill(); });
-
-            // Operativos remotos
+            // Dibujar jugadores remotos
             Object.keys(remotePlayers).forEach(id => {
                 let p = remotePlayers[id]; if (p.role === 'PENDING') return;
                 ctx.fillStyle = '#fff'; ctx.font = '10px monospace'; ctx.fillText(p.name, p.x - 20, p.y - 25);
-                ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.angle); ctx.fillStyle = p.role === 'AGENT' ? '#0055ff' : '#ffcc00'; ctx.beginPath(); ctx.arc(0, 0, 15, 0, Math.PI*2); ctx.fill();
-                if(p.weapon !== 'NONE') { ctx.fillStyle = '#fff'; ctx.fillRect(10, -2, 10, 4); } ctx.restore();
+                ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.angle); ctx.fillStyle = p.role === 'AGENT' ? '#0055ff' : '#ffcc00'; ctx.beginPath(); ctx.arc(0, 0, 15, 0, Math.PI*2); ctx.fill(); ctx.restore();
             });
 
-            // Tu propio personaje con rotación dinámica hacia el mouse
-            ctx.fillStyle = '#00ffcc'; ctx.font = '10px monospace'; ctx.fillText(localPlayer.name + " (TÚ)", localPlayer.x - 25, localPlayer.y - 25);
-            ctx.save(); ctx.translate(localPlayer.x, localPlayer.y); ctx.rotate(localPlayer.angle);
-            ctx.fillStyle = localPlayer.role === 'AGENT' ? '#0055ff' : '#ffcc00'; ctx.beginPath(); ctx.arc(0, 0, 15, 0, Math.PI*2); ctx.fill();
-            ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.stroke();
-            
-            if(localPlayer.weapon !== 'NONE') {
-                ctx.fillStyle = '#ffffff';
-                let wLength = localPlayer.weapon === 'RIFLE' ? 18 : 10;
-                ctx.fillRect(12, -2, wLength, 4); 
-            }
-            ctx.restore();
+            // Dibujar a tu propio jugador
+            ctx.fillStyle = '#00ffcc'; ctx.font = '10px monospace'; ctx.fillText(localPlayer.name, localPlayer.x - 20, localPlayer.y - 25);
+            ctx.save(); ctx.translate(localPlayer.x, localPlayer.y); ctx.rotate(localPlayer.angle); ctx.fillStyle = localPlayer.role === 'AGENT' ? '#0055ff' : '#ffcc00'; ctx.beginPath(); ctx.arc(0, 0, 15, 0, Math.PI*2); ctx.fill(); ctx.restore();
             ctx.restore();
         }
-        function mainLoop() { update(); draw(); requestAnimationFrame(mainLoop); }
+
+        function mainLoop() { 
+            update(); draw(); 
+            requestAnimationFrame(mainLoop); 
+        }
         mainLoop();
     </script>
 </body>
