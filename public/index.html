@@ -336,15 +336,6 @@
 
     socket.emit('joinTeam', { role: localPlayer.role, name: localPlayer.name, x: localPlayer.x, y: localPlayer.y });
 }
-            document.getElementById('team-select').style.display = 'none';
-            document.getElementById('hud').style.display = 'block';
-            document.getElementById('leaderboard').style.display = 'block';
-            document.getElementById('controls-guide').style.display = 'block';
-            document.getElementById('hotbar-container').style.display = 'flex';
-            switchSlot(1);
-            socket.emit('joinTeam', { role: localPlayer.role, name: localPlayer.name, x: localPlayer.x, y: localPlayer.y });
-        }
-
         socket.on('connect', () => {
             document.getElementById('net-status').innerText = "✅ Canal de Red Sincronizado en Render";
             document.getElementById('net-status').style.color = "#00ffcc";
