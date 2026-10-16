@@ -311,9 +311,31 @@
             setTimeout(() => { selectTeam('AGENT', 1950, 650); }, 1800); 
         };
 
-        function selectTeam(team, spawnX, spawnY) {
-            localPlayer.role = team; localPlayer.x = spawnX; localPlayer.y = spawnY;
-            gameStarted = true;
+       function selectTeam(team, spawnX, spawnY) {
+    localPlayer.role = team; 
+    localPlayer.x = spawnX; 
+    localPlayer.y = spawnY;
+
+    // Forzar al navegador a recalcular el lienzo antes de pintar
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    gameStarted = true;
+
+    document.getElementById('team-select').style.display = 'none';
+    document.getElementById('hud').style.display = 'block';
+    document.getElementById('leaderboard').style.display = 'block';
+    document.getElementById('controls-guide').style.display = 'block';
+    document.getElementById('hotbar-container').style.display = 'flex';
+
+    switchSlot(1);
+
+    // Limpieza inicial para evitar la pantalla negra
+    ctx.fillStyle = '#020205';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    socket.emit('joinTeam', { role: localPlayer.role, name: localPlayer.name, x: localPlayer.x, y: localPlayer.y });
+}
             document.getElementById('team-select').style.display = 'none';
             document.getElementById('hud').style.display = 'block';
             document.getElementById('leaderboard').style.display = 'block';
