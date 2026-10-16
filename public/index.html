@@ -119,7 +119,7 @@
     <script>
         let socket;
         try {
-            socket = io("https://onrender.com");
+           const socket = io("https://sting-operation.onrender.com");
         } catch(e) {
             socket = { emit: function(){}, on: function(){} };
         }
