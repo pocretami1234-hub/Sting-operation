@@ -262,7 +262,61 @@
             ctx.restore();
         }
 
-        function mainLoop() { update(); draw(); requestAnimationFrame(mainLoop); }
+        function mainLoop() { update(); unction draw() {
+            if (!gameStarted) return;
+            
+            // Forzar que el lienzo se adapte al tamaño real de tu pantalla actual
+            if (canvas.width !== window.innerWidth || canvas.height !== window.innerHeight) {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Centrar la cámara obligatoriamente en el jugador local
+            let camX = canvas.width / 2 - localPlayer.x; 
+            let camY = canvas.height / 2 - localPlayer.y;
+
+            ctx.save(); 
+            ctx.translate(camX, camY); 
+            
+            // Pintar el fondo del mapa de un color gris espacial para saber si renderiza
+            ctx.fillStyle = '#06060c'; 
+            ctx.fillRect(0, 0, MAP_SIZE, MAP_SIZE);
+
+            // Dibujar los edificios neón con el fix z.w asegurado
+            Object.keys(zones).forEach(k => {
+                let z = zones[k]; 
+                ctx.fillStyle = z.color; 
+                ctx.fillRect(z.x, z.y, z.w, z.h); 
+                ctx.strokeStyle = '#ff0055'; 
+                if (k === 'armeria') ctx.strokeStyle = '#00ffcc';
+                ctx.lineWidth = 3; 
+                ctx.strokeRect(z.x, z.y, z.w, z.h); 
+                ctx.fillStyle = '#00ffcc'; 
+                ctx.font = 'bold 12px monospace'; 
+                ctx.fillText(`:: ${z.name.toUpperCase()} ::`, z.x + 15, z.y + 25);
+            });
+
+            // Dibujar a tu propio jugador (Círculo Neón visible por encima de todo)
+            ctx.fillStyle = '#00ffcc'; 
+            ctx.font = '12px monospace'; 
+            ctx.fillText(localPlayer.name, localPlayer.x - 20, localPlayer.y - 25);
+
+            ctx.save(); 
+            ctx.translate(localPlayer.x, localPlayer.y); 
+            ctx.rotate(localPlayer.angle); 
+            ctx.fillStyle = localPlayer.role === 'AGENT' ? '#0055ff' : '#ffcc00'; 
+            ctx.beginPath(); 
+            ctx.arc(0, 0, 15, 0, Math.PI * 2); 
+            ctx.fill(); 
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            ctx.restore();
+            
+            ctx.restore();
+        }; requestAnimationFrame(mainLoop); }
         mainLoop();
     </script>
 </body>
