@@ -10,61 +10,79 @@
         
         #canvas-game { display: block; position: absolute; top: 0; left: 0; z-index: 1; }
         
-        /* CURSOR FÍSICO DE ENLACE NEÓN */
-        #neon-cursor {
-            position: absolute; width: 14px; height: 14px; background: #00ffcc;
-            border-radius: 50%; z-index: 999999; box-shadow: 0 0 15px #00ffcc, 0 0 30px #00ffcc;
-            pointer-events: none; top: 50%; left: 50%; transform: translate(-50%, -50%);
+        /* 🚨 NUEVA PANTALLA DE ACTIVACIÓN CON ANIMACIÓN DE PERSECUCIÓN */
+        #boot-screen {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: #020205; z-index: 9999999; display: flex; flex-direction: column;
+            justify-content: center; align-items: center; text-align: center;
+        }
+        
+        /* Contenedor de la persecución */
+        #chase-container {
+            width: 300px; height: 50px; position: relative; margin-top: 20px;
+            overflow: hidden; border-bottom: 2px dashed #ff0055; display: none;
+        }
+        #chase-actors {
+            position: absolute; white-space: nowrap; font-size: 24px;
+            animation: arcadeChase 2s linear infinite; left: -100px;
+        }
+        @keyframes arcadeChase {
+            0% { left: -100px; }
+            100% { left: 320px; }
         }
 
-        /* MENÚ DE SELECCIÓN DIRECTO SIN BLOQUEOS */
+        /* Menú de selección por teclado */
         #team-select {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            background: rgba(5, 5, 15, 0.95); border: 2px solid #ff0055; padding: 40px;
-            border-radius: 8px; text-align: center; z-index: 9999; box-shadow: 0 0 30px rgba(255,0,85,0.4);
-            width: 460px;
+            background: #05050f; border: 2px solid #ff0055; padding: 40px;
+            border-radius: 8px; text-align: center; z-index: 99999; box-shadow: 0 0 30px rgba(255,0,85,0.5);
+            width: 450px; display: none;
         }
-        .menu-zone {
-            padding: 20px; font-size: 16px; font-weight: bold; margin: 20px auto;
-            border-radius: 6px; text-transform: uppercase; width: 90%; transition: all 0.2s;
+        .team-btn {
+            padding: 15px 30px; font-size: 16px; font-weight: bold; margin: 15px;
+            border: none; border-radius: 4px; cursor: pointer; text-transform: uppercase;
+            transition: transform 0.1s ease; display: inline-block;
         }
-        #zone-fugitive { background: #111; color: #ffcc00; border: 2px dashed #ffcc00; }
-        #zone-agent { background: #111; color: #0055ff; border: 2px dashed #0055ff; }
+        #btn-fugitive { background: #ffcc00; color: #000; box-shadow: 0 0 15px #ffcc00; }
+        #btn-agent { background: #0055ff; color: #fff; box-shadow: 0 0 15px #0055ff; }
 
-        /* HUD Superior */
+        /* HUD y Tablas */
         #hud {
             position: absolute; top: 10px; left: 10px; z-index: 100;
             background: rgba(5, 5, 10, 0.95); padding: 12px; border-radius: 4px;
             font-size: 13px; border: 2px solid #ff0055; line-height: 1.5; min-width: 240px;
-            box-shadow: 0 0 10px rgba(255, 0, 85, 0.2); display: none;
+            display: none;
         }
         .bar { background: #111; border-radius: 2px; height: 12px; width: 100px; display: inline-block; overflow: hidden; border: 1px solid #333; }
         #hp-fill { background: #ff0055; height: 100%; width: 100%; }
         #bag-fill { background: #00ffcc; height: 100%; width: 0%; }
 
-        /* Leaderboard */
         #leaderboard {
             position: absolute; top: 10px; right: 10px; z-index: 100;
             background: rgba(5, 5, 10, 0.95); padding: 12px; border-radius: 4px;
-            font-size: 12px; border: 2px solid #00ffcc; width: 220px; max-height: 200px; overflow-y: auto;
-            display: none; box-shadow: 0 0 10px rgba(0, 255, 204, 0.2);
+            font-size: 12px; border: 2px solid #00ffcc; width: 220px; display: none;
         }
-        .leader-row { display: flex; justify-content: space-between; margin: 4px 0; }
     </style>
     <script src="https://socket.io"></script>
 </head>
 <body>
 
-    <!-- El Puntito Neón que moverás con WASD -->
-    <div id="neon-cursor"></div>
+    <!-- Pantalla de carga con el Policía persiguiendo al Criminal -->
+    <div id="boot-screen">
+        <h1 style="color: #ff0055; margin-bottom: 25px; font-size: 26px; letter-spacing: 3px; text-shadow: 0 0 10px #ff0055;">🤖 OPERACIÓN ACÚSTICA</h1>
+        <p id="boot-text" style="color: #888; font-size: 13px;">Presiona <span style="color:#fff; font-weight:bold;">[ ENTER ]</span> para sincronizar módulos.</p>
+        
+        <div id="chase-container">
+            <div id="chase-actors">🏃‍♂️ 👮‍♂️</div>
+        </div>
+    </div>
 
     <div id="team-select">
-        <h2 style="color: #ff0055; margin-bottom: 15px; letter-spacing: 2px;">STING OPERATION</h2>
-        <p style="font-size: 11px; color: #888; margin-bottom: 15px;">Mueve el puntito CIAN con [WASD] sobre tu bando.</p>
-        
-        <div id="zone-fugitive" class="menu-zone">🏃‍♂️ Mover aquí para Fugitivo</div>
-        <div id="zone-agent" class="menu-zone">👮‍♂️ Mover aquí para Agente</div>
-    </div> <div id="hud">
+        <h2 style="color: #ff0055; margin-bottom: 20px; letter-spacing: 2px;">SELECCIÓN DE OPERATIVO</h2>
+        <button id="btn-fugitive" class="team-btn">Fugitivo (Escapa y Roba)</button>
+        <button id="btn-agent" class="team-btn">Agente (Defiende y Caza)</button>
+        <p id="net-status" style="font-size: 10px; margin-top: 20px; color: #555;">Canal de datos en espera...</p>
+    </div><div id="hud">
         <div style="display:flex; justify-content:space-between; margin-bottom:5px; font-weight:bold;">
             <span style="color:#ffcc00;">🏃‍♂️ Fugs: <span id="count-fugs">0</span></span>
             <span style="color:#0055ff;">👮‍♂️ Agents: <span id="count-agents">0</span></span>
@@ -85,14 +103,6 @@
         <div id="leaderboard-content"></div>
     </div>
 
-    <button id="btn-interact" style="position:absolute; bottom:40px; left:50%; transform:translateX(-50%); padding:12px 30px; font-weight:bold; font-size:16px; background:#ff0055; color:white; border:none; border-radius:4px; display:none; box-shadow:0 0 15px #ff0055; text-transform:uppercase; z-index:100;">INTERACTUAR</button>
-
-    <div id="puzzle-box" style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); background:#05050a; border:3px solid #ff0055; padding:25px; border-radius:6px; z-index:100; text-align:center; display:none; box-shadow:0 0 30px rgba(255, 0, 85, 0.4);">
-        <h3 id="puzzle-title" style="color:#ff0055; margin-bottom:10px;">HACKEO ELECTRÓNICO</h3>
-        <div id="nodes-container"></div>
-        <p id="puzzle-status" style="margin-top:10px; font-size:12px; color:#ff0055;"></p>
-    </div>
-
     <canvas id="canvas-game"></canvas>
 
     <script>
@@ -102,22 +112,15 @@
         
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
-
         let myId = null;
         let gameStarted = false;
-        
-        // Coordenadas físicas en pantalla para tu Puntito Neón
-        let cursorX = window.innerWidth / 2;
-        let cursorY = window.innerHeight / 2;
-
+        let bootScreenActive = true;
         let localPlayer = { name: "Anon_User", x: 250, y: 250, angle: 0, hp: 100, cash: 0, bag: 0, maxBag: 1500, role: 'PENDING', vehicle: null, weapon: 'NONE', isStunned: false, stunEnd: 0, isDead: false, isArrestedOnGround: false };
         let remotePlayers = {};
         let serverRobberies = {};
         let localProjectiles = [];
         let networkProjectiles = [];
-
         const MAP_SIZE = 4000;
-        
         const zones = {
             prision: { x: 100, y: 100, w: 400, h: 400, color: '#0d0d1a', name: "Complejo de Retención Alfa" },
             bov_quimica: { x: 1800, y: 500, w: 350, h: 300, color: '#051a15', name: "Nexo Financiero (Cripto Bóveda)" },
@@ -125,213 +128,118 @@
             volcan: { x: 1500, y: 3200, w: 500, h: 400, color: '#1a1005', name: "Guarida del Sindicato Underground" },
             armeria: { x: 1000, y: 1500, w: 220, h: 220, color: '#151525', name: "Armería del Mercado Negro" }
         };
-
-        const shopDoor = { x: 1110, y: 1720, w: 40, h: 10 };
-        const vehicleSpawner = { x: 450, y: 450, name: "Deslizador Cyber-Grid", color: "#ff0055" };
+        const vehicleSpawner = { x: 450, y: 450; name: "Deslizador Cyber-Grid", color: "#ff0055" };
         let prisonEscaped = false;
-        let shopActive = false;
-        let droppedKeycards = [];
-        let arrestInterval = null;
-
-        const keys = {};
-        let mouseX = 0, mouseY = 0;
-
-        window.addEventListener('keydown', e => { 
+        function playTone(freq, duration) {
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gainNode.gain.setValueAtTime(0.06, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+                oscillator.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+                oscillator.start(); oscillator.stop(audioCtx.currentTime + duration);
+            } catch(e) {}
+        }
+        // 🎹 CAPTURADOR CON ANIMACIÓN DE PERSECUCIÓN RETRO DE POLICÍA
+        window.addEventListener('keydown', e => {
             let key = e.key.toLowerCase();
-            keys[key] = true;
-            if(gameStarted && !localPlayer.isArrestedOnGround) handleInteractions(key);
-        });
-        window.addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false; });
-        window.addEventListener('mousemove', e => { mouseX = e.clientX; mouseY = e.clientY; }); function handleInteractions(key) {
-            if (!gameStarted || key !== 'e' || localPlayer.isArrestedOnGround) return;
-            let d = Math.hypot(localPlayer.x - vehicleSpawner.x, localPlayer.y - vehicleSpawner.y);
-            if (d < 60) {
-                if (localPlayer.role === 'FUGITIVE' && !prisonEscaped) return;
-                localPlayer.vehicle = { name: vehicleSpawner.name, color: vehicleSpawner.color, speed: 9.5 };
+            // Si la pantalla de inicio está activa y presionas Enter
+            if (bootScreenActive) {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    playTone(587, 0.1); // Bip inicial
+                    // Mostrar animación del Policía persiguiendo al Criminal
+                    document.getElementById('boot-text').innerText = "⚡ CONECTANDO MÓDULOS... SATORI NET ACTIVE";
+                    document.getElementById('boot-text').style.color = "#ffcc00";
+                    document.getElementById('chase-container').style.display = "block";
+                    // Esperar 2 segundos de carrera para forzar al navegador a dar permisos antes de abrir el bando
+                    setTimeout(() => {
+                        playTone(880, 0.15); // Bip de éxito
+                        bootScreenActive = false;
+                        document.getElementById('boot-screen').style.display = 'none';
+                        document.getElementById('team-select').style.display = 'block';
+                    }, 2000);
+                }
+                return;
             }
-        }
-
-        function shoot() {
-            if (localPlayer.weapon === 'NONE') return;
-            let sX = canvas.width / 2; let sY = canvas.height / 2;
-            let angle = Math.atan2(mouseY - sY, mouseX - sX);
-            let colorProj = '#ff0055'; let size = 4; let damage = 15; let isStun = false;
-            if (localPlayer.weapon === 'AK45') { colorProj = '#ff6600'; size = 5; damage = 25; }
-            if (localPlayer.weapon === 'SHOTGUN') { colorProj = '#ff0033'; size = 8; damage = 50; }
-            if (localPlayer.role === 'AGENT') { colorProj = '#00ffff'; damage = 10; isStun = true; }
-            let proj = { x: localPlayer.x, y: localPlayer.y, vx: Math.cos(angle)*15, vy: Math.sin(angle)*15, life: 50, color: colorProj, size: size, damage: damage, isStun: isStun, team: localPlayer.role };
-            localProjectiles.push(proj);
-            socket.emit('fireProjectile', { x: proj.x, y: proj.y, vx: proj.vx, vy: proj.vy, color: colorProj, size: size, damage: damage, isStun: isStun, team: localPlayer.role });
-        }
-
+            if (gameStarted) keys[key] = true;
+        });
+        window.addEventListener('keyup', e => { if(gameStarted) keys[e.key.toLowerCase()] = false; });
+        document.getElementById('btn-fugitive').onclick = function() { selectTeam('FUGITIVE', 250, 250); };
+        document.getElementById('btn-agent').onclick = function() { selectTeam('AGENT', 1900, 600); };
         function selectTeam(team, spawnX, spawnY) {
             localPlayer.role = team; localPlayer.x = spawnX; localPlayer.y = spawnY;
-            localPlayer.weapon = team === 'AGENT' ? 'TASER' : 'NONE';
-            localPlayer.name = team === 'AGENT' ? "Agente_" + Math.floor(Math.random()*900+100) : "Fugitivo_" + Math.floor(Math.random()*900+100);
             gameStarted = true;
             document.getElementById('team-select').style.display = 'none';
-            document.getElementById('neon-cursor').style.display = 'none';
             document.getElementById('hud').style.display = 'block';
             document.getElementById('leaderboard').style.display = 'block';
             document.getElementById('txt-name').innerText = localPlayer.name;
             socket.emit('joinTeam', { role: localPlayer.role, name: localPlayer.name, x: localPlayer.x, y: localPlayer.y });
         }
-
-        function triggerGroundArrest() {
-            localPlayer.isArrestedOnGround = true; localPlayer.hp = 0; if (localPlayer.vehicle) localPlayer.vehicle = null;
-            document.getElementById('death-screen').style.display = 'flex';
-            let count = 10; document.getElementById('death-timer').innerText = count;
-            arrestInterval = setInterval(() => {
-                count--; document.getElementById('death-timer').innerText = count;
-                if (count <= 0) {
-                    clearInterval(arrestInterval); document.getElementById('death-screen').style.display = 'none';
-                    localPlayer.isArrestedOnGround = false; localPlayer.hp = 100; localPlayer.bag = 0;
-                    localPlayer.x = 250; localPlayer.y = 250; localPlayer.weapon = 'NONE'; prisonEscaped = false;
-                }
-            }, 1000);
-        }
-
-        function checkWallCollisions(oldX, oldY) {
+        socket.on('connect', () => {
+            document.getElementById('net-status').innerText = "✅ Canal de Red Sincronizado en Render";
+            document.getElementById('net-status').style.color = "#00ffcc";
+        });socket.on('init', (data) => {
+            myId = data.id; serverRobberies = data.robberies;
+            Object.keys(data.players).forEach(id => { if(id !== myId) remotePlayers[id] = data.players[id]; });
+        });
+        socket.on('newPlayer', (player) => { remotePlayers[player.id] = player; });
+        socket.on('playerMoved', (player) => { if(remotePlayers[player.id]) remotePlayers[player.id] = player; });
+        socket.on('playerDisconnected', (id) => { delete remotePlayers[id]; });
+        const keys = {}; let mouseX = 0, mouseY = 0;
+        window.addEventListener('mousemove', e => { mouseX = e.clientX; mouseY = e.clientY; });
+        function update() {
+            if (!gameStarted) return;
+            let oldX = localPlayer.x; let oldY = localPlayer.y;
+            let currentSpeed = 4.5;
+            if (keys['w']) localPlayer.y -= currentSpeed; if (keys['s']) localPlayer.y += currentSpeed;
+            if (keys['a']) localPlayer.x -= currentSpeed; if (keys['d']) localPlayer.x += currentSpeed;
+            localPlayer.x = Math.max(20, Math.min(MAP_SIZE - 20, localPlayer.x)); localPlayer.y = Math.max(20, Math.min(MAP_SIZE - 20, localPlayer.y));
+            // Colisiones físicas contra los bloques del mapa
             let radius = 15;
             Object.keys(zones).forEach(k => {
                 let z = zones[k];
-                if (k === 'prision' && (prisonEscaped || localPlayer.role === 'AGENT')) return;
-                if (localPlayer.x + radius > z.x && localPlayer.x - radius < z.x + z.w && localPlayer.y + radius > z.y && localPlayer.y - radius < z.y + z.h) {
-                    localPlayer.x = oldX; localPlayer.y = oldY;
+                if (k === 'prision' && prisonEscaped) return;
+                if (localPlayer.x + radius > z.x && localPlayer.x - radius < z.x + z.w && localPlayer.y + radius > z.y && localPlayer.y - radius < z.y + z.h) { 
+                    localPlayer.x = oldX; localPlayer.y = oldY; 
                 }
             });
-        }
-
-        function update() {
-            // LÓGICA DE MOVIMIENTO DEL CURSOR NEÓN (WASD EN EL MENÚ)
-            if (!gameStarted) {
-                let cursorSpeed = 8;
-                if (keys['w']) cursorY -= cursorSpeed;
-                if (keys['s']) cursorY += cursorSpeed;
-                if (keys['a']) cursorX -= cursorSpeed;
-                if (keys['d']) cursorX += cursorSpeed;
-
-                // Actualizar la posición del puntito en la pantalla
-                const cursorEl = document.getElementById('neon-cursor');
-                cursorEl.style.left = cursorX + 'px';
-                cursorEl.style.top = cursorY + 'px';
-
-                // Detectar si el puntito toca los botones del menú utilizando las cajas físicas
-                let rectFugitive = document.getElementById('zone-fugitive').getBoundingClientRect();
-                let rectAgent = document.getElementById('zone-agent').getBoundingClientRect();
-
-                if (cursorX > rectFugitive.left && cursorX < rectFugitive.right && cursorY > rectFugitive.top && cursorY < rectFugitive.bottom) {
-                    selectTeam('FUGITIVE', 250, 250); // Teletransporte instantáneo a la celda
-                }
-                if (cursorX > rectAgent.left && cursorX < rectAgent.right && cursorY > rectAgent.top && cursorY < rectAgent.bottom) {
-                    selectTeam('AGENT', 1900, 600); // Teletransporte instantáneo a la comisaría
-                }
-                return;
-            }
-
-            // Actualización de avatar normal en la partida
-            let now = Date.now(); if (localPlayer.isStunned && now > localPlayer.stunEnd) { localPlayer.isStunned = false; }
-            let oldX = localPlayer.x; let oldY = localPlayer.y;
-            let currentSpeed = localPlayer.vehicle ? localPlayer.vehicle.speed : 4.5;
-            if (localPlayer.isStunned) currentSpeed = currentSpeed / 2;
-
-            if (keys['w']) localPlayer.y -= currentSpeed; if (keys['s']) localPlayer.y += currentSpeed;
-            if (keys['a']) localPlayer.x -= currentSpeed; if (keys['d']) localPlayer.x += currentSpeed;
-
-            localPlayer.x = Math.max(20, Math.min(MAP_SIZE - 20, localPlayer.x)); localPlayer.y = Math.max(20, Math.min(MAP_SIZE - 20, localPlayer.y));
-            checkWallCollisions(oldX, oldY); localPlayer.angle = Math.atan2(mouseY - canvas.height/2, mouseX - canvas.width/2);
+            localPlayer.angle = Math.atan2(mouseY - canvas.height/2, mouseX - canvas.width/2);
             socket.emit('playerUpdate', { name: localPlayer.name, x: localPlayer.x, y: localPlayer.y, angle: localPlayer.angle, vehicle: localPlayer.vehicle, bag: localPlayer.bag, role: localPlayer.role, cash: localPlayer.cash, isArrestedOnGround: localPlayer.isArrestedOnGround });
-
-            localProjectiles.forEach((p, idx) => { p.x += p.vx; p.y += p.vy; p.life--; if (p.life <= 0) localProjectiles.splice(idx, 1); });
-            networkProjectiles.forEach((p, idx) => {
-                p.x += p.vx; p.y += p.vy; p.life--; if (p.life <= 0) networkProjectiles.splice(idx, 1);
-                if (p.team !== localPlayer.role && Math.hypot(p.x - localPlayer.x, p.y - localPlayer.y) < 18) {
-                    if (p.isStun) { localPlayer.isStunned = true; localPlayer.stunEnd = Date.now() + 2000; }
-                    localPlayer.hp -= p.damage; networkProjectiles.splice(idx, 1);
-                    if (localPlayer.hp <= 0 && !localPlayer.isArrestedOnGround && localPlayer.role === 'FUGITIVE') { triggerGroundArrest(); }
-                }
-            });
-
-            // Sincronizar recuadros dinámicos de HUD
             let fugs = localPlayer.role === 'FUGITIVE' ? 1 : 0; let agents = localPlayer.role === 'AGENT' ? 1 : 0;
             let leadHTML = `<div class="leader-row" style="color:#00ffcc;"><span>> ${localPlayer.name}</span><span>$${localPlayer.cash}</span></div>`;
             Object.keys(remotePlayers).forEach(id => {
-                let rp = remotePlayers[id]; if (rp.role === 'PENDING') return;
-                if (rp.role === 'FUGITIVE') fugs++; if (rp.role === 'AGENT') agents++;
+                let rp = remotePlayers[id]; if(rp.role === 'PENDING') return;
+                if(rp.role === 'FUGITIVE') fugs++; if(rp.role === 'AGENT') agents++;
                 leadHTML += `<div class="leader-row" style="color:${rp.role === 'AGENT' ? '#0055ff' : '#ffcc00'};"><span>${rp.name || "Anon"}</span><span>$${rp.cash || 0}</span></div>`;
             });
             document.getElementById('count-fugs').innerText = fugs; document.getElementById('count-agents').innerText = agents;
             document.getElementById('leaderboard-content').innerHTML = leadHTML;
-
-            let wName = "NINGUNA"; if (localPlayer.weapon === 'PISTOL') wName = "Pistola (Gratis)"; if (localPlayer.weapon === 'AK45') wName = "Fusil AK-45"; if (localPlayer.weapon === 'SHOTGUN') wName = "Escopeta Táctica"; if (localPlayer.weapon === 'TASER') wName = "Taser Aturdidor";
-            document.getElementById('txt-weapon').innerText = wName; document.getElementById('hp-fill').style.width = localPlayer.hp + '%';
+            document.getElementById('hp-fill').style.width = localPlayer.hp + '%';
         }
-
+        // --- RENDERIZADO DEL MAPA CON EL FIX DE LA LÍNEA 412 CORRECTO (`z.w`) ---
         function draw() {
             if (!gameStarted) return; ctx.clearRect(0, 0, canvas.width, canvas.height);
             let camX = canvas.width / 2 - localPlayer.x; let camY = canvas.height / 2 - localPlayer.y;
             ctx.save(); ctx.translate(camX, camY); ctx.fillStyle = '#020205'; ctx.fillRect(0, 0, MAP_SIZE, MAP_SIZE);
 
             Object.keys(zones).forEach(k => {
-                let z = zones[k]; ctx.fillStyle = z.color; ctx.fillRect(z.x, z.y, z.w, z.h); // Línea 412 Fix z.w impecable
+                let z = zones[k]; ctx.fillStyle = z.color; ctx.fillRect(z.x, z.y, z.w, z.h);
                 ctx.strokeStyle = '#ff0055'; if (k === 'armeria') ctx.strokeStyle = '#00ffcc';
                 ctx.lineWidth = 3; ctx.strokeRect(z.x, z.y, z.w, z.h); ctx.fillStyle = '#00ffcc'; ctx.font = 'bold 12px monospace'; ctx.fillText(`:: ${z.name.toUpperCase()} ::`, z.x + 15, z.y + 25);
             });
-
-            ctx.fillStyle = '#00ffcc'; ctx.fillRect(shopDoor.x, shopDoor.y, shopDoor.w, shopDoor.h);
-            ctx.fillStyle = vehicleSpawner.color; ctx.fillRect(vehicleSpawner.x - 20, vehicleSpawner.y - 12, 40, 24);
-            localProjectiles.forEach(p => { ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI*2); ctx.fill(); }); localProjectiles.forEach((p, idx) => { p.x += p.vx; p.y += p.vy; p.life--; if (p.life <= 0) localProjectiles.splice(idx, 1); });
-            networkProjectiles.forEach((p, idx) => {
-                p.x += p.vx; p.y += p.vy; p.life--; if (p.life <= 0) networkProjectiles.splice(idx, 1);
-                if (p.team !== localPlayer.role && Math.hypot(p.x - localPlayer.x, p.y - localPlayer.y) < 18) {
-                    if (p.isStun) { localPlayer.isStunned = true; localPlayer.stunEnd = Date.now() + 2000; }
-                    localPlayer.hp -= p.damage; networkProjectiles.splice(idx, 1);
-                    if (localPlayer.hp <= 0 && !localPlayer.isArrestedOnGround && localPlayer.role === 'FUGITIVE') { triggerGroundArrest(); }
-                }
-            });
-
-            // Sincronizar recuadros dinámicos de HUD
-            let fugs = localPlayer.role === 'FUGITIVE' ? 1 : 0; let agents = localPlayer.role === 'AGENT' ? 1 : 0;
-            let leadHTML = `<div class="leader-row" style="color:#00ffcc;"><span>> ${localPlayer.name}</span><span>$${localPlayer.cash}</span></div>`;
-            Object.keys(remotePlayers).forEach(id => {
-                let rp = remotePlayers[id]; if (rp.role === 'PENDING') return;
-                if (rp.role === 'FUGITIVE') fugs++; if (rp.role === 'AGENT') agents++;
-                leadHTML += `<div class="leader-row" style="color:${rp.role === 'AGENT' ? '#0055ff' : '#ffcc00'};"><span>${rp.name || "Anon"}</span><span>$${rp.cash || 0}</span></div>`;
-            });
-            document.getElementById('count-fugs').innerText = fugs; document.getElementById('count-agents').innerText = agents;
-            document.getElementById('leaderboard-content').innerHTML = leadHTML;
-
-            let wName = "NINGUNA"; if (localPlayer.weapon === 'PISTOL') wName = "Pistola (Gratis)"; if (localPlayer.weapon === 'AK45') wName = "Fusil AK-45"; if (localPlayer.weapon === 'SHOTGUN') wName = "Escopeta Táctica"; if (localPlayer.weapon === 'TASER') wName = "Taser Aturdidor";
-            document.getElementById('txt-weapon').innerText = wName; document.getElementById('hp-fill').style.width = localPlayer.hp + '%';
-        }
-
-        function draw() {
-            if (!gameStarted) return; ctx.clearRect(0, 0, canvas.width, canvas.height);
-            let camX = canvas.width / 2 - localPlayer.x; let camY = canvas.height / 2 - localPlayer.y;
-            ctx.save(); ctx.translate(camX, camY); ctx.fillStyle = '#020205'; ctx.fillRect(0, 0, MAP_SIZE, MAP_SIZE);
-
-            Object.keys(zones).forEach(k => {
-                let z = zones[k]; ctx.fillStyle = z.color; ctx.fillRect(z.x, z.y, z.w, z.h); // Línea 412 Fix z.w impecable
-                ctx.strokeStyle = '#ff0055'; if (k === 'armeria') ctx.strokeStyle = '#00ffcc';
-                ctx.lineWidth = 3; ctx.strokeRect(z.x, z.y, z.w, z.h); ctx.fillStyle = '#00ffcc'; ctx.font = 'bold 12px monospace'; ctx.fillText(`:: ${z.name.toUpperCase()} ::`, z.x + 15, z.y + 25);
-            });
-
-            ctx.fillStyle = '#00ffcc'; ctx.fillRect(shopDoor.x, shopDoor.y, shopDoor.w, shopDoor.h);
-            ctx.fillStyle = vehicleSpawner.color; ctx.fillRect(vehicleSpawner.x - 20, vehicleSpawner.y - 12, 40, 24);
-            localProjectiles.forEach(p => { ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI*2); ctx.fill(); });
-            networkProjectiles.forEach(p => { ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI*2); ctx.fill(); });
-
             Object.keys(remotePlayers).forEach(id => {
                 let p = remotePlayers[id]; if (p.role === 'PENDING') return;
-                ctx.fillStyle = p.isArrestedOnGround ? '#ff0055' : '#fff'; ctx.font = '10px monospace'; ctx.fillText(p.name, p.x - 20, p.y - 25);
+                ctx.fillStyle = '#fff'; ctx.font = '10px monospace'; ctx.fillText(p.name, p.x - 20, p.y - 25);
                 ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.angle); ctx.fillStyle = p.role === 'AGENT' ? '#0055ff' : '#ffcc00'; ctx.beginPath(); ctx.arc(0, 0, 15, 0, Math.PI*2); ctx.fill(); ctx.restore();
             });
-
             ctx.fillStyle = '#00ffcc'; ctx.font = '10px monospace'; ctx.fillText(localPlayer.name, localPlayer.x - 20, localPlayer.y - 25);
             ctx.save(); ctx.translate(localPlayer.x, localPlayer.y); ctx.rotate(localPlayer.angle); ctx.fillStyle = localPlayer.role === 'AGENT' ? '#0055ff' : '#ffcc00'; ctx.beginPath(); ctx.arc(0, 0, 15, 0, Math.PI*2); ctx.fill(); ctx.restore();
             ctx.restore();
         }
-
         function mainLoop() { update(); draw(); requestAnimationFrame(mainLoop); }
         mainLoop();
     </script>
