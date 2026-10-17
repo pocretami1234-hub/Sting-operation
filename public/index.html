@@ -39,19 +39,23 @@
 </head>
 <body>
     <div id="siren-overlay"></div>
+    
+    <!-- Botones vinculados físicamente al clic nativo del navegador -->
     <div id="boot-screen">
         <h1 style="color: #ff0055; font-size: 22px; letter-spacing: 2px; text-shadow: 0 0 10px #ff0055;">🤖 CONFIGURACIÓN DE NÚCLEO</h1>
         <p id="boot-text" style="color: #888; font-size: 11px; margin-top: 10px; margin-bottom: 15px;">Selecciona el modo de rendimiento optimizado para tu hardware.</p>
-        <button id="btn-perf-high" class="perf-btn">Gráficos Altos (PC Moderna)</button>
-        <button id="btn-perf-lite" class="perf-btn">Rendimiento Lite (PC Clásica)</button>
+        <button id="btn-perf-high" class="perf-btn" onclick="setMode('HIGH')">Gráficos Altos (PC Moderna)</button>
+        <button id="btn-perf-lite" class="perf-btn" onclick="setMode('LITE')">Rendimiento Lite (PC Clásica)</button>
         <div id="chase-container"><div id="chase-actors">🏃‍♂️ 👮‍♂️</div></div>
     </div>
+    
     <div id="team-select">
         <h2 style="color: #ff0055; margin-bottom: 20px; letter-spacing: 2px;">SELECCIÓN DE OPERATIVO</h2>
-        <button id="btn-fugitive" class="team-btn">Fugitivo (Escapa y Roba)</button>
-        <button id="btn-agent" class="team-btn">Agente (Defiende y Caza)</button>
+        <button id="btn-fugitive" class="team-btn" onclick="startFugitive()">Fugitivo (Escapa y Roba)</button>
+        <button id="btn-agent" class="team-btn" onclick="startAgent()">Agente (Defiende y Caza)</button>
         <p id="net-status" style="font-size: 10px; margin-top: 20px; color: #ff0055;">Sincronizando puente de datos...</p>
     </div>
+    
     <div id="controls-guide">
         <div class="guide-title">Sincronización de Red</div>
         <div>[W,A,S,D] Moverse por el Mapa</div>
@@ -64,73 +68,85 @@
         <div id="slot-3" class="hotbar-slot" onclick="switchSlot(3)"><span class="slot-key">3</span><span class="slot-icon">⚡</span><span class="slot-name">Especial</span></div>
     </div>
     <canvas id="canvas-game"></canvas>
-     <script>
+    <script>
         const socket = io("https://onrender.com");
         const canvas = document.getElementById('canvas-game');
         const ctx = canvas.getContext('2d');
         canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+        
         let myId = null; let gameStarted = false; let bootScreenActive = true; let performanceMode = "HIGH"; let activeSlot = 1; let audioCtxInstance = null;
         let localPlayer = { name: "Operativo", x: 250, y: 250, angle: 0, hp: 100, cash: 0, role: 'PENDING', weapon: 'NONE', isArrestedOnGround: false };
         let remotePlayers = {}; let localProjectiles = []; let networkProjectiles = [];
         const MAP_SIZE = 4000;
+        
         const zones = {
-            prision: { x: 100, y: 100, w: 400, h: 400, color: '#0c0a14', name: "Complejo de Retención Alfa (Prisión)" },
+            prision: { x: 100, y: 100, w: 400, h: 400, color: '#0d0a17', name: "Complejo de Retención Alfa (Prisión)" },
             armeria: { x: 1000, y: 1500, w: 220, h: 220, color: '#151525', name: "Armería del Mercado Negro" },
-            comisaria: { x: 1800, y: 500, w: 450, h: 350, color: '#050c1f', name: "Estación de Comando (Policía)" },
-            banco: { x: 2800, y: 2200, w: 400, h: 350, color: '#1a1505', name: "Bóveda Central de Créditos" }
+            comisaria: { x: 1800, y: 500, w: 450, h: 350, color: '#040b24', name: "Estación de Comando (Policía)" },
+            banco: { x: 2800, y: 2200, w: 400, h: 350, color: '#17140a', name: "Bóveda Central de Créditos" }
         };
+
         function initAudioContext() {
             if (!audioCtxInstance) audioCtxInstance = new (window.AudioContext || window.webkitAudioContext)();
             if (audioCtxInstance.state === 'suspended') audioCtxInstance.resume();
             return audioCtxInstance;
         }
+
         function playTone(freq, duration) {
             try { const audioCtx = initAudioContext(); const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain(); osc.type = 'sine'; osc.frequency.setValueAtTime(freq, audioCtx.currentTime); gain.gain.setValueAtTime(0.03, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration); osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + duration); } catch(e) {}
         }
+
         function playPoliceSiren() {
             try { const audioCtx = initAudioContext(); let time = audioCtx.currentTime; const overlay = document.getElementById('siren-overlay'); overlay.style.display = 'block';
                 for (let i = 0; i < 4; i++) { const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain(); osc.type = 'sine'; osc.frequency.setValueAtTime(i % 2 === 0 ? 600 : 850, time); gain.gain.setValueAtTime(0.025, time); gain.gain.exponentialRampToValueAtTime(0.001, time + 0.25); osc.connect(gain); gain.connect(audioCtx.destination); osc.start(time); osc.stop(time + 0.25); setTimeout(() => { overlay.style.backgroundColor = i % 2 === 0 ? 'rgba(0, 85, 255, 0.2)' : 'rgba(255, 0, 85, 0.2)'; }, i * 250); time += 0.25; }
                 setTimeout(() => { overlay.style.display = 'none'; }, 1000); } catch(e) {}
         }
+
         function playPrisonBell() {
             try { const audioCtx = initAudioContext(); let time = audioCtx.currentTime; const overlay = document.getElementById('siren-overlay'); overlay.style.display = 'block'; overlay.style.backgroundColor = 'rgba(255, 170, 0, 0.2)';
                 for (let i = 0; i < 8; i++) { const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain(); osc.type = 'triangle'; osc.frequency.setValueAtTime(350, time); gain.gain.setValueAtTime(0.03, time); gain.gain.exponentialRampToValueAtTime(0.001, time + 0.06); osc.connect(gain); gain.connect(audioCtx.destination); osc.start(time); osc.stop(time + 0.06); setTimeout(() => { overlay.style.opacity = i % 2 === 0 ? '1' : '0.3'; }, i * 80); time += 0.08; }
                 setTimeout(() => { overlay.style.display = 'none'; overlay.style.opacity = '1'; }, 800); } catch(e) {}
         }
-        document.getElementById('btn-perf-high').onclick = function() { performanceMode = "HIGH"; triggerBoot(); };
-        document.getElementById('btn-perf-lite').onclick = function() { performanceMode = "LITE"; triggerBoot(); };
-        function triggerBoot() {
+
+        window.setMode = function(mode) {
+            performanceMode = mode;
             initAudioContext(); playTone(587, 0.1);
             document.getElementById('boot-text').innerText = `⚡ MÓDULO [${performanceMode}] INICIADO. SINCRONIZANDO NÚCLEO...`;
-            document.getElementById('btn-perf-high').style.display = "none"; document.getElementById('btn-perf-lite').style.display = "none";
+            document.getElementById('btn-perf-high').style.display = "none";
+            document.getElementById('btn-perf-lite').style.display = "none";
             document.getElementById('chase-container').style.display = "block";
             setTimeout(() => { playTone(880, 0.12); bootScreenActive = false; document.getElementById('boot-screen').style.display = 'none'; document.getElementById('team-select').style.display = 'block'; }, 1200);
-        }
-         const keys = {}; let mouseX = 0, mouseY = 0;
+        };
+        window.startFugitive = function() { playPrisonBell(); setTimeout(() => { selectTeam('FUGITIVE', 250, 250); }, 900); };
+        window.startAgent = function() { playPoliceSiren(); setTimeout(() => { selectTeam('AGENT', 1950, 650); }, 1100); };
+
+        const keys = {}; let mouseX = 0, mouseY = 0;
         window.addEventListener('keydown', e => { let key = e.key.toLowerCase(); keys[key] = true; if (!gameStarted) return; if (key === '1') switchSlot(1); if (key === '2') switchSlot(2); if (key === '3') switchSlot(3); });
         window.addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false; });
         window.addEventListener('mousemove', e => { mouseX = e.clientX; mouseY = e.clientY; });
         window.addEventListener('mousedown', e => { if(gameStarted && e.button === 0 && !localPlayer.isArrestedOnGround) shoot(); });
+
         window.switchSlot = function(slotNum) {
             if(!gameStarted) return; activeSlot = slotNum; playTone(650, 0.04);
             for(let i = 1; i <= 3; i++) { document.getElementById(`slot-${i}`).classList.remove('active'); }
             document.getElementById(`slot-${slotNum}`).classList.add('active');
             if(slotNum === 1) localPlayer.weapon = 'NONE'; if(slotNum === 2) localPlayer.weapon = localPlayer.role === 'AGENT' ? 'TASER' : 'PISTOL'; if(slotNum === 3) localPlayer.weapon = 'RIFLE';
         };
-        document.getElementById('btn-fugitive').onclick = function() { playPrisonBell(); setTimeout(() => { selectTeam('FUGITIVE', 250, 250); }, 900); };
-        document.getElementById('btn-agent').onclick = function() { playPoliceSiren(); setTimeout(() => { selectTeam('AGENT', 1950, 650); }, 1100); };
+
         function selectTeam(team, spawnX, spawnY) {
             localPlayer.role = team; localPlayer.x = spawnX; localPlayer.y = spawnY; canvas.width = window.innerWidth; canvas.height = window.innerHeight; gameStarted = true;
             document.getElementById('team-select').style.display = 'none'; document.getElementById('hud').style.display = 'block'; document.getElementById('leaderboard').style.display = 'block'; document.getElementById('controls-guide').style.display = 'block'; document.getElementById('hotbar-container').style.display = 'flex';
             switchSlot(1); ctx.fillStyle = '#020205'; ctx.fillRect(0, 0, canvas.width, canvas.height);
             socket.emit('joinTeam', { role: localPlayer.role, name: localPlayer.name, x: localPlayer.x, y: localPlayer.y });
         }
+
         socket.on('connect', () => { document.getElementById('net-status').innerText = "✅ Canal de Red Sincronizado en Render"; document.getElementById('net-status').style.color = "#00ffcc"; });
         socket.on('init', (data) => { myId = data.id; Object.keys(data.players).forEach(id => { if(id !== myId) remotePlayers[id] = data.players[id]; }); });
         socket.on('newPlayer', (player) => { remotePlayers[player.id] = player; });
         socket.on('playerMoved', (player) => { if(remotePlayers[player.id]) remotePlayers[player.id] = player; });
         socket.on('playerDisconnected', (id) => { delete remotePlayers[id]; });
         socket.on('enemyProjectile', (p) => { networkProjectiles.push(p); });
+
         function shoot() {
             if (localPlayer.weapon === 'NONE') return;
             let angle = localPlayer.angle; let colorProj = localPlayer.role === 'AGENT' ? '#00ffff' : '#ff0055'; let damage = localPlayer.weapon === 'RIFLE' ? 35 : 15;
@@ -138,6 +154,7 @@
             localProjectiles.push(proj); socket.emit('fireProjectile', { x: proj.x, y: proj.y, vx: proj.vx, vy: proj.vy, color: colorProj, size: 5, damage: damage, team: localPlayer.role });
             playTone(localPlayer.weapon === 'RIFLE' ? 300 : 450, 0.05);
         }
+
         function update() {
             if (!gameStarted) return;
             let oldX = localPlayer.x; let oldY = localPlayer.y; let speed = 4.5;
@@ -152,8 +169,9 @@
             let fugs = localPlayer.role === 'FUGITIVE' ? 1 : 0; let agents = localPlayer.role === 'AGENT' ? 1 : 0;
             let leadHTML = `<div class="leader-row" style="color:#00ffcc;"><span>> ${localPlayer.name}</span><span>$${localPlayer.cash}</span></div>`;
             Object.keys(remotePlayers).forEach(id => { let rp = remotePlayers[id]; if(rp.role === 'PENDING') return; if (rp.role === 'FUGITIVE') fugs++; if (rp.role === 'AGENT') agents++; leadHTML += `<div class="leader-row" style="color:${rp.role === 'AGENT' ? '#0055ff' : '#ffcc00'};"><span>${rp.name || "Anon"}</span><span>$0</span></div>`; });
-            document.getElementById('count-fugs').innerText = fugs; document.getElementById('count-agents').innerText = agents; document.getElementById('leaderboard-content').innerHTML = leadHTML; document.getElementById('hp-fill').style.width = localPlayer.hp + '%';
+            document.getElementById('count-fugs').innerText = fugs; document.getElementById('count-agents').innerText = agents; document.getElementById('leaderboard-content').innerHTML = leadHTML;
         }
+
         function draw() {
             if (!gameStarted) return;
             if (canvas.width !== window.innerWidth || canvas.height !== window.innerHeight) { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
@@ -163,12 +181,11 @@
             ctx.fillStyle = '#020205'; ctx.fillRect(0, 0, MAP_SIZE, MAP_SIZE);
             if (performanceMode === "HIGH") {
                 ctx.strokeStyle = 'rgba(0, 255, 204, 0.03)'; ctx.lineWidth = 1;
-                for (let x = 0; x < MAP_SIZE; x += 100) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, MAP_SIZE); ctx.stroke(); }
-                for (let y = 0; y < MAP_SIZE; y += 100) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(MAP_SIZE, y); ctx.stroke(); }
+                for (let x = 0; x < MAP_SIZE; x += 100) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, MAP_SIZE); stroke(); }
+                for (let y = 0; y < MAP_SIZE; y += 100) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(MAP_SIZE, y); stroke(); }
             }
             Object.keys(zones).forEach(k => {
-                let z = zones[k];
-                if (k === 'prision') { ctx.fillStyle = '#0d0a17'; } else if (k === 'comisaria') { ctx.fillStyle = '#040b24'; } else { ctx.fillStyle = '#08080d'; }
+                let z = zones[k]; if (k === 'prision') { ctx.fillStyle = '#0d0a17'; } else if (k === 'comisaria') { ctx.fillStyle = '#040b24'; } else { ctx.fillStyle = '#08080d'; }
                 ctx.fillRect(z.x, z.y, z.w, z.h);
                 if (performanceMode === "HIGH") {
                     ctx.strokeStyle = k === 'comisaria' ? 'rgba(0, 85, 255, 0.12)' : 'rgba(255, 0, 85, 0.12)'; ctx.lineWidth = 2;
@@ -195,4 +212,3 @@
     </script>
 </body>
 </html>
-         
