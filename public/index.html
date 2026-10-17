@@ -109,11 +109,9 @@
         }
 
         window.setMode = function(mode) {
-            performanceMode = mode;
-            initAudioContext(); playTone(587, 0.1);
+            performanceMode = mode; initAudioContext(); playTone(587, 0.1);
             document.getElementById('boot-text').innerText = `⚡ MÓDULO [${performanceMode}] INICIADO. SINCRONIZANDO NÚCLEO...`;
-            document.getElementById('btn-perf-high').style.display = "none";
-            document.getElementById('btn-perf-lite').style.display = "none";
+            document.getElementById('btn-perf-high').style.display = "none"; document.getElementById('btn-perf-lite').style.display = "none";
             document.getElementById('chase-container').style.display = "block";
             setTimeout(() => { playTone(880, 0.12); bootScreenActive = false; document.getElementById('boot-screen').style.display = 'none'; document.getElementById('team-select').style.display = 'block'; }, 1200);
         };
@@ -181,11 +179,12 @@
             ctx.fillStyle = '#020205'; ctx.fillRect(0, 0, MAP_SIZE, MAP_SIZE);
             if (performanceMode === "HIGH") {
                 ctx.strokeStyle = 'rgba(0, 255, 204, 0.03)'; ctx.lineWidth = 1;
-                for (let x = 0; x < MAP_SIZE; x += 100) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, MAP_SIZE); stroke(); }
-                for (let y = 0; y < MAP_SIZE; y += 100) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(MAP_SIZE, y); stroke(); }
+                for (let x = 0; x < MAP_SIZE; x += 100) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, MAP_SIZE); ctx.stroke(); }
+                for (let y = 0; y < MAP_SIZE; y += 100) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(MAP_SIZE, y); ctx.stroke(); }
             }
             Object.keys(zones).forEach(k => {
-                let z = zones[k]; if (k === 'prision') { ctx.fillStyle = '#0d0a17'; } else if (k === 'comisaria') { ctx.fillStyle = '#040b24'; } else { ctx.fillStyle = '#08080d'; }
+                let z = zones[k];
+                if (k === 'prision') { ctx.fillStyle = '#0d0a17'; } else if (k === 'comisaria') { ctx.fillStyle = '#040b24'; } else { ctx.fillStyle = '#08080d'; }
                 ctx.fillRect(z.x, z.y, z.w, z.h);
                 if (performanceMode === "HIGH") {
                     ctx.strokeStyle = k === 'comisaria' ? 'rgba(0, 85, 255, 0.12)' : 'rgba(255, 0, 85, 0.12)'; ctx.lineWidth = 2;
