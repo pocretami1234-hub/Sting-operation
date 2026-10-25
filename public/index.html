@@ -3,74 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sting Operation: Prison Break HD</title>
+    <title>Sting Operation HD</title>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Courier New', Courier, monospace; }
-        
-        /* Forzar a que el cursor desaparezca si se tiene un arma equipada */
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: monospace; }
         body { background: #020205; color: #00ffcc; overflow: hidden; width: 100vw; height: 100vh; position: relative; user-select: none; }
         body.has-weapon { cursor: none; }
-        
         #canvas-game { display: block; position: absolute; top: 0; left: 0; z-index: 1; }
         #siren-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 999999; pointer-events: none; display: none; }
-        
-        /* PANTALLA DE TITULO CON CRONÓMETRO BANCARIO */
         #boot-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #020205; z-index: 9999999; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
-        .perf-btn { padding: 15px 30px; font-size: 15px; font-weight: bold; margin: 12px; border: 2px solid #ff0055; border-radius: 4px; cursor: pointer; text-transform: uppercase; background: #111; color: #ff0055; transition: all 0.2s; width: 280px; }
-        #btn-perf-high:hover { background: #ff0055; color: white; box-shadow: 0 0 20px #ff0055; }
-        #btn-perf-lite:hover { background: #00ffcc; color: black; border-color: #00ffcc; box-shadow: 0 0 20px #00ffcc; }
-        #timer-box { font-size: 28px; font-weight: bold; color: #ff0055; margin-top: 15px; letter-spacing: 2px; text-shadow: 0 0 10px #ff0055; display: none; background: rgba(255, 0, 85, 0.05); padding: 10px 25px; border-radius: 4px; border: 1px dashed rgba(255, 0, 85, 0.3); }
-        #chase-container { width: 250px; height: 40px; position: relative; margin-top: 25px; overflow: hidden; border-bottom: 2px dashed #ff0055; display: none; }
+        .perf-btn { padding: 12px 24px; font-size: 14px; font-weight: bold; margin: 10px; border: 2px solid #ff0055; background: #111; color: #ff0055; cursor: pointer; text-transform: uppercase; width: 260px; }
+        #btn-perf-high:hover { background: #ff0055; color: white; box-shadow: 0 0 15px #ff0055; }
+        #btn-perf-lite:hover { background: #00ffcc; color: black; border-color: #00ffcc; box-shadow: 0 0 15px #00ffcc; }
+        #timer-box { font-size: 26px; font-weight: bold; color: #ff0055; margin-top: 15px; letter-spacing: 2px; text-shadow: 0 0 8px #ff0055; display: none; background: rgba(255, 0, 85, 0.05); padding: 8px 20px; border-radius: 4px; border: 1px dashed rgba(255, 0, 85, 0.3); }
+        #chase-container { width: 250px; height: 40px; position: relative; margin-top: 20px; overflow: hidden; border-bottom: 2px dashed #ff0055; display: none; }
         #chase-actors { position: absolute; white-space: nowrap; font-size: 20px; animation: arcadeChase 1.5s linear infinite; left: -80px; }
         @keyframes arcadeChase { 0% { left: -80px; } 100% { left: 270px; } }
-
-        /* SELECCIÓN DE REARQUITECTURA DE BANDO */
-        #team-select { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #05050f; border: 2px solid #ff0055; padding: 35px; border-radius: 8px; text-align: center; z-index: 99998; box-shadow: 0 0 25px rgba(255,0,85,0.4); width: 420px; display: none; }
-        .team-btn { padding: 12px 25px; font-size: 15px; font-weight: bold; margin: 12px; border: none; border-radius: 4px; cursor: pointer; text-transform: uppercase; }
-        #btn-fugitive { background: #ffcc00; color: #000; box-shadow: 0 0 12px #ffcc00; }
-        #btn-agent { background: #0055ff; color: #fff; box-shadow: 0 0 12px #0055ff; }
-
-        /* HUD SUPERIOR */
-        #hud { position: absolute; top: 10px; left: 10px; z-index: 100; background: rgba(5, 5, 10, 0.85); padding: 12px; border-radius: 4px; font-size: 13px; border: 1px solid #ff0055; min-width: 250px; display: none; }
-        .bar { background: #111; border-radius: 2px; height: 12px; width: 100px; display: inline-block; overflow: hidden; border: 1px solid #333; vertical-align: middle; }
-        #hp-fill { background: #ff0055; height: 100%; width: 100%; transition: width 0.1s; }
-        
-        #leaderboard { position: absolute; top: 10px; right: 10px; z-index: 100; background: rgba(5, 5, 10, 0.85); padding: 12px; border-radius: 4px; font-size: 12px; border: 1px solid #00ffcc; width: 220px; display: none; }
-        .leader-row { display: flex; justify-content: space-between; margin: 4px 0; }
-        
-        #controls-guide { position: absolute; bottom: 20px; left: 20px; z-index: 100; background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(4px); border: 1px solid rgba(255, 255, 255, 0.15); padding: 12px; border-radius: 6px; font-size: 11px; color: rgba(255, 255, 255, 0.85); line-height: 1.6; display: none; pointer-events: none; }
-        .guide-title { font-weight: bold; color: #00ffcc; margin-bottom: 4px; text-transform: uppercase; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 2px; }
-
-        /* RANURAS DE HOTBAR INFERIOR INTERACTIVA */
-        #hotbar-container { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 100; background: rgba(5, 5, 15, 0.75); backdrop-filter: blur(6px); border: 2px solid #00ffcc; padding: 6px; border-radius: 8px; display: none; justify-content: center; gap: 8px; box-shadow: 0 0 20px rgba(0, 255, 204, 0.2); }
-        .hotbar-slot { width: 55px; height: 55px; background: rgba(20, 20, 35, 0.6); border: 1px solid rgba(0, 255, 204, 0.3); border-radius: 4px; display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: pointer; position: relative; transition: all 0.15s; }
-        .hotbar-slot:hover { background: rgba(0, 255, 204, 0.15); border-color: #00ffcc; }
-        .hotbar-slot.active { border: 2px solid #ff0055; background: rgba(255, 0, 85, 0.15); box-shadow: 0 0 12px rgba(255, 0, 85, 0.4); transform: scale(1.05); }
-        .slot-key { position: absolute; top: 2px; left: 4px; font-size: 9px; color: #666; font-weight: bold; }
-        .slot-icon { font-size: 16px; margin-bottom: 1px; }
-        .slot-name { font-size: 8px; text-transform: uppercase; color: #fff; text-align: center; }
-
-        /* 🛒 INTERFAZ DEL MERCADO NEGRO DE ARMAS DE TUS FOTOS */
-        #shop-menu {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            background: rgba(5, 5, 15, 0.95); border: 2px solid #ff0055; padding: 25px;
-            border-radius: 8px; z-index: 500000; width: 380px; display: none;
-            box-shadow: 0 0 30px rgba(255, 0, 85, 0.3); text-align: center;
-        }
-        .shop-item {
-            background: rgba(20, 20, 35, 0.7); border: 1px solid rgba(255, 0, 85, 0.2);
-            padding: 10px; margin: 10px 0; border-radius: 4px; display: flex;
-            justify-content: space-between; align-items: center;
-        }
-        .buy-btn { background: #00ffcc; color: black; border: none; padding: 6px 12px; font-weight: bold; cursor: pointer; border-radius: 2px; font-size: 11px; }
-        .buy-btn:hover { background: white; }
+        #team-select { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #05050f; border: 2px solid #ff0055; padding: 30px; text-align: center; z-index: 99998; box-shadow: 0 0 20px rgba(255,0,85,0.4); width: 400px; display: none; }
+        .team-btn { padding: 12px 25px; font-size: 14px; font-weight: bold; margin: 10px; border: none; cursor: pointer; text-transform: uppercase; }
+        #btn-fugitive { background: #ffcc00; color: #000; box-shadow: 0 0 10px #ffcc00; }
+        #btn-agent { background: #0055ff; color: #fff; box-shadow: 0 0 10px #0055ff; }
+        #hud { position: absolute; top: 10px; left: 10px; z-index: 100; background: rgba(5, 5, 10, 0.85); padding: 10px; border: 1px solid #ff0055; min-width: 240px; display: none; font-size: 12px; }
+        .bar { background: #111; height: 10px; width: 100px; display: inline-block; overflow: hidden; border: 1px solid #333; vertical-align: middle; }
+        #hp-fill { background: #ff0055; height: 100%; width: 100%; }
+        #leaderboard { position: absolute; top: 10px; right: 10px; z-index: 100; background: rgba(5, 5, 10, 0.85); padding: 10px; border: 1px solid #00ffcc; width: 200px; display: none; font-size: 11px; }
+        .leader-row { display: flex; justify-content: space-between; margin: 3px 0; }
+        #controls-guide { position: absolute; bottom: 20px; left: 20px; z-index: 100; background: rgba(255, 255, 255, 0.06); backdrop-filter: blur(2px); border: 1px solid rgba(255, 255, 255, 0.1); padding: 10px; font-size: 11px; color: rgba(255, 255, 255, 0.8); line-height: 1.5; display: none; pointer-events: none; }
+        .guide-title { font-weight: bold; color: #00ffcc; margin-bottom: 3px; text-transform: uppercase; }
+        #hotbar-container { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 100; background: rgba(5, 5, 15, 0.7); backdrop-filter: blur(4px); border: 2px solid #00ffcc; padding: 5px; display: none; gap: 6px; box-shadow: 0 0 15px rgba(0, 255, 204, 0.15); }
+        .hotbar-slot { width: 50px; height: 50px; background: rgba(20, 20, 35, 0.5); border: 1px solid rgba(0, 255, 204, 0.2); display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: pointer; position: relative; }
+        .hotbar-slot.active { border: 2px solid #ff0055; background: rgba(255, 0, 85, 0.1); box-shadow: 0 0 8px rgba(255, 0, 85, 0.3); }
+        .slot-key { position: absolute; top: 1px; left: 3px; font-size: 8px; color: #555; font-weight: bold; }
+        .slot-icon { font-size: 14px; }
+        .slot-name { font-size: 7px; text-transform: uppercase; color: #fff; }
+        #shop-menu { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(5, 5, 15, 0.95); border: 2px solid #ff0055; padding: 20px; z-index: 500000; width: 340px; display: none; text-align: center; }
+        .shop-item { background: rgba(20, 20, 35, 0.7); border: 1px solid rgba(255, 0, 85, 0.15); padding: 8px; margin: 8px 0; display: flex; justify-content: space-between; align-items: center; }
+        .buy-btn { background: #00ffcc; color: black; border: none; padding: 5px 10px; font-weight: bold; cursor: pointer; font-size: 10px; }
     </style>
     <script src="https://socket.io"></script>
 </head>
 <body>
-
     <div id="siren-overlay"></div>
-
     <div id="boot-screen">
         <h1 style="color: #ff0055; font-size: 22px; letter-spacing: 2px; text-shadow: 0 0 10px #ff0055;">🤖 CONFIGURACIÓN DE NÚCLEO</h1>
         <p id="boot-text" style="color: #888; font-size: 11px; margin-top: 10px; margin-bottom: 15px;">Pasa el mouse encima del botón para iniciar la cuenta regresiva táctica.</p>
@@ -79,71 +51,66 @@
         <div id="timer-box">03:00:00</div>
         <div id="chase-container"><div id="chase-actors">🏃‍♂️ 👮‍♂️</div></div>
     </div>
-
     <div id="team-select">
         <h2 style="color: #ff0055; margin-bottom: 20px; letter-spacing: 2px;">SELECCIÓN DE OPERATIVO</h2>
-        <button id="btn-fugitive" class="team-btn" onclick="startFugitive()">Fugitivo (Escapa y Roba)</button>
-        <button id="btn-agent" class="team-btn" onclick="startAgent()">Agente (Defiende y Caza)</button>
-        <p id="net-status" style="font-size: 10px; margin-top: 20px; color: #ff0055;">Sincronizando puente de datos...</p>
+        <button id="btn-fugitive" class="team-btn" onclick="startFugitive()">Fugitivo</button>
+        <button id="btn-agent" class="team-btn" onclick="startAgent()">Agente</button>
+        <p id="net-status" style="font-size: 10px; margin-top: 15px; color: #ff0055;">Sincronizando puente de datos...</p>
     </div>
-
     <div id="hud">
         <div>Operativo: <span id="txt-name" style="color:#fff;">Anon</span></div>
         <div>Rol: <span id="txt-role" style="color:#ffcc00;">PENDIENTE</span></div>
-        <div>Créditos Net: <span id="txt-cash" style="color:#00ffcc; font-weight:bold;">$100,000</span></div>
-        <div>Integridad: <div class="bar"><div id="hp-fill"></div></div></div>
+        <div>Créditos: <span id="txt-cash" style="color:#00ffcc; font-weight:bold;">$100,000</span></div>
+        <div>Vida: <div class="bar"><div id="hp-fill"></div></div></div>
     </div>
-
     <div id="leaderboard">
-        <div style="font-weight:bold; color:#00ffcc; text-align:center; margin-bottom:8px; border-bottom:1px solid #00ffcc;">NEXO DE OPERATIVOS</div>
         <div id="leaderboard-content"></div>
     </div>
-
-    <!-- 🛒 MENÚ INTERACTIVO DE LAS ARMAS DE TU SEGUNDA IMAGEN -->
     <div id="shop-menu">
-        <h3 style="color:#ff0055; margin-bottom:15px; font-size:14px;">🛍️ INTERFAZ DE ARMAMENTO DE FOTOS</h3>
+        <h3 style="color:#ff0055; margin-bottom:10px; font-size:12px;">🛍️ MERCADO NEGRO</h3>
         <div class="shop-item">
-            <div style="text-align:left;"><div style="color:#fff; font-weight:bold; font-size:11px;">Escopeta Común</div><div style="color:#888; font-size:9px;">Estructura básica de madera</div></div>
+            <div style="text-align:left;"><div style="color:#fff; font-weight:bold; font-size:10px;">Escopeta Común</div></div>
             <button class="buy-btn" onclick="buyWeapon('SHOTGUN_BASE', 15000)">$15,000</button>
         </div>
         <div class="shop-item">
-            <div style="text-align:left;"><div style="color:#0055ff; font-weight:bold; font-size:11px;">Escopeta Skin 1</div><div style="color:#ffcc00; font-size:9px;">Diseño Galaxia Estelar HD</div></div>
+            <div style="text-align:left;"><div style="color:#0055ff; font-weight:bold; font-size:10px;">Escopeta Galaxia</div></div>
             <button class="buy-btn" onclick="buyWeapon('SHOTGUN_SKIN1', 250000)">$250,000</button>
         </div>
         <div class="shop-item">
-            <div style="text-align:left;"><div style="color:#ff0055; font-weight:bold; font-size:11px;">Escopeta Skin 2</div><div style="color:#ffcc00; font-size:9px;">Diseño Llamas de Fuego Infernal</div></div>
-            <button class="buy-btn" onclick="buyWeapon('SHOTGUN_SKIN2', 450000)">$450,000</button>
+            <div style="text-align:left;"><div style="color:#ff0055; font-weight:bold; font-size:10px;">Machete Neón</div></div>
+            <button class="buy-btn" onclick="buyWeapon('KNIFE_ELITE', 95000)">$95,000</button>
         </div>
-        <button onclick="closeShop()" style="background:#ff0055; color:white; border:none; padding:8px 16px; margin-top:10px; cursor:pointer; font-weight:bold; font-size:10px;">CERRAR TIENDA</button>
+        <button onclick="closeShop()" style="background:#ff0055; color:white; border:none; padding:6px 12px; margin-top:10px; cursor:pointer; font-weight:bold; font-size:10px;">CERRAR</button>
     </div>
-
     <div id="controls-guide">
-        <div class="guide-title">Sincronización Autónoma</div>
-        <script>
-        let socket;
-        try {
-            socket = io("https://onrender.com", { timeout: 1000 });
-        } catch(e) {
-            socket = { emit: function(){}, on: function(){} };
-        }
-        
+        <div class="guide-title">Controles</div>
+        <div>[WASD] Moverse | [Mouse] Apuntar</div>
+        <div>[E] Tienda de Armas (En zona)</div>
+    </div>
+    <div id="hotbar-container">
+        <div id="slot-1" class="hotbar-slot active" onclick="switchSlot(1)"><span class="slot-key">1</span><span class="slot-icon">👊</span></div>
+        <div id="slot-2" class="hotbar-slot" onclick="switchSlot(2)"><span class="slot-key">2</span><span class="slot-icon">🔫</span></div>
+        <div id="slot-3" class="hotbar-slot" onclick="switchSlot(3)"><span class="slot-key">3</span><span class="slot-icon">🔪</span></div>
+    </div>
+    <canvas id="canvas-game"></canvas>
+     <script>
+        const socket = io("https://onrender.com", { timeout: 1000 });
         const canvas = document.getElementById('canvas-game');
         const ctx = canvas.getContext('2d');
         canvas.width = window.innerWidth; canvas.height = window.innerHeight;
         
-        let myId = "local_player_" + Math.floor(Math.random()*1000); 
-        let gameStarted = false; let bootScreenActive = true; let performanceMode = "HIGH"; let activeSlot = 1; let audioCtxInstance = null;
-        let isShopOpen = false;
+        let myId = null; let gameStarted = false; let bootScreenActive = true; let performanceMode = "HIGH"; let activeSlot = 1; let audioCtxInstance = null;
+        let isShopOpen = false; let timerStarted = false; let taserCooldown = 0; let knifeSwingTimer = 0;
 
         let localPlayer = { name: "Operativo", x: 2300, y: 700, angle: 0, hp: 100, cash: 100000, role: 'PENDING', weapon: 'NONE', ownedWeapons: ['NONE'] };
         let remotePlayers = {}; let localProjectiles = []; let networkProjectiles = [];
         const MAP_SIZE = 4000;
         
         const zones = {
-            celdas: { x: 100, y: 100, w: 400, h: 1200, color: '#0d0a17', name: "Zona de Celdas (Prisión)" },
+            celdas: { x: 100, y: 100, w: 400, h: 1200, color: '#0d0a17', name: "Celdas (Prisión)" },
             patioFutbol: { x: 1000, y: 100, w: 800, h: 1200, color: '#06170c', name: "Patio de Fútbol" },
-            tiendaArmas: { x: 2200, y: 500, w: 500, h: 400, color: '#140c06', name: "Puesto de Armas y Skins" },
-            bovedaRobos: { x: 2200, y: 100, w: 500, h: 300, color: '#17140a', name: "Bóveda de Extracción" }
+            tiendaArmas: { x: 2200, y: 500, w: 500, h: 400, color: '#140c06', name: "Tienda de Armas" },
+            bovedaRobos: { x: 2200, y: 100, w: 500, h: 300, color: '#17140a', name: "Bóveda" }
         };
 
         const porteriaArriba = { x: 1300, y: 100, w: 200, h: 40 };
@@ -186,7 +153,7 @@
                 for (let i = 0; i < 8; i++) { const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain(); osc.type = 'triangle'; osc.frequency.setValueAtTime(350, time); gain.gain.setValueAtTime(0.025, time); gain.gain.exponentialRampToValueAtTime(0.001, time + 0.06); osc.connect(gain); gain.connect(audioCtx.destination); osc.start(time); osc.stop(time + 0.06); setTimeout(() => { overlay.style.opacity = i % 2 === 0 ? '1' : '0.3'; }, i * 80); time += 0.08; }
                 setTimeout(() => { overlay.style.display = 'none'; overlay.style.opacity = '1'; }, 800); } catch(e) {}
         }
-            let timerStarted = false;
+
         window.startBypassTimer = function(mode) {
             if (timerStarted) return; timerStarted = true; performanceMode = mode;
             initAudioContext(); playTone(587, 0.1);
@@ -205,100 +172,49 @@
                 timerBox.innerText = `00:${seconds < 10 ? "0" + seconds : seconds}:${centiseconds < 10 ? "0" + centiseconds : centiseconds}`;
             }, 33);
         };
-
-        window.startFugitive = function() { playPrisonBell(); setTimeout(() => { selectTeam('FUGITIVE', 250, 250); }, 900); };
+          window.startFugitive = function() { playPrisonBell(); setTimeout(() => { selectTeam('FUGITIVE', 250, 250); }, 900); };
         window.startAgent = function() { playPoliceSiren(); setTimeout(() => { selectTeam('AGENT', 2450, 700); }, 1100); };
 
         const keys = {}; let mouseX = 0, mouseY = 0;
-        
-        window.addEventListener('keydown', e => { 
-            let key = e.key.toLowerCase(); keys[key] = true; 
-            if (!gameStarted) return; 
-            if (key === '1') switchSlot(1); 
-            if (key === '2') switchSlot(2); 
-            
-            if (key === 'e') {
-                let shop = zones.tiendaArmas;
-                if (localPlayer.x > shop.x && localPlayer.x < shop.x + shop.w && localPlayer.y > shop.y && localPlayer.y < shop.y + shop.h) {
-                    isShopOpen = !isShopOpen;
-                    document.getElementById('shop-menu').style.display = isShopOpen ? 'block' : 'none';
-                }
-            }
-        });
-        
+        window.addEventListener('keydown', e => { let key = e.key.toLowerCase(); keys[key] = true; if (!gameStarted) return; if (key === '1') switchSlot(1); if (key === '2') switchSlot(2); if (key === '3') switchSlot(3); if (key === 'e') { let shop = zones.tiendaArmas; if (localPlayer.x > shop.x && localPlayer.x < shop.x + shop.w && localPlayer.y > shop.y && localPlayer.y < shop.y + shop.h) { isShopOpen = !isShopOpen; document.getElementById('shop-menu').style.display = isShopOpen ? 'block' : 'none'; } } });
         window.addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false; });
         window.addEventListener('mousemove', e => { mouseX = e.clientX; mouseY = e.clientY; });
         window.addEventListener('mousedown', e => { if(gameStarted && e.button === 0 && !isShopOpen) shoot(); });
 
         window.switchSlot = function(slotNum) {
             if(!gameStarted) return; activeSlot = slotNum; playTone(650, 0.04);
-            for(let i = 1; i <= 2; i++) { document.getElementById(`slot-${i}`).classList.remove('active'); }
+            for(let i = 1; i <= 3; i++) { document.getElementById(`slot-${i}`).classList.remove('active'); }
             document.getElementById(`slot-${slotNum}`).classList.add('active');
-            
-            if(slotNum === 1) {
-                localPlayer.weapon = 'NONE';
-                document.body.classList.remove('has-weapon');
-            }
-            if(slotNum === 2) {
-                if (localPlayer.ownedWeapons.length > 1) {
-                    localPlayer.weapon = localPlayer.ownedWeapons[localPlayer.ownedWeapons.length - 1];
-                    document.body.classList.add('has-weapon');
-                } else {
-                    localPlayer.weapon = 'NONE';
-                    document.body.classList.remove('has-weapon');
-                }
-            }
+            if(slotNum === 1) { localPlayer.weapon = 'NONE'; document.body.classList.remove('has-weapon'); }
+            if(slotNum === 2) { if (localPlayer.ownedWeapons.length > 1) { localPlayer.weapon = localPlayer.ownedWeapons[localPlayer.ownedWeapons.length - 1]; document.body.classList.add('has-weapon'); } else { localPlayer.weapon = 'NONE'; document.body.classList.remove('has-weapon'); } }
+            if(slotNum === 3) { localPlayer.weapon = localPlayer.role === 'AGENT' ? 'TASER' : 'KNIFE_BASE'; document.body.classList.add('has-weapon'); }
         };
 
         window.buyWeapon = function(weaponId, cost) {
-            if (localPlayer.cash >= cost) {
-                localPlayer.cash -= cost;
-                localPlayer.ownedWeapons.push(weaponId);
-                document.getElementById('txt-cash').innerText = `$${localPlayer.cash}`;
-                playTone(950, 0.1);
-                alert(`🛒 ¡Adquirida con éxito! Equípala presionando la ranura [2] en tu teclado.`);
-                closeShop();
-                switchSlot(2);
-            } else {
-                alert("❌ Créditos Net insuficientes en tu cuenta cifrada.");
-            }
+            if (localPlayer.cash >= cost) { localPlayer.cash -= cost; localPlayer.ownedWeapons.push(weaponId); document.getElementById('txt-cash').innerText = `$${localPlayer.cash}`; playTone(950, 0.1); alert(`🛒 ¡Comprado!`); closeShop(); switchSlot(weaponId.includes('SHOTGUN') ? 2 : 3); } else { alert("❌ Sin fondos."); }
         };
-
-        window.closeShop = function() {
-            isShopOpen = false;
-            document.getElementById('shop-menu').style.display = 'none';
-        };
+        window.closeShop = function() { isShopOpen = false; document.getElementById('shop-menu').style.display = 'none'; };
 
         function selectTeam(team, spawnX, spawnY) {
             localPlayer.role = team; localPlayer.x = spawnX; localPlayer.y = spawnY; canvas.width = window.innerWidth; canvas.height = window.innerHeight; gameStarted = true;
             document.getElementById('team-select').style.display = 'none'; document.getElementById('hud').style.display = 'block'; document.getElementById('leaderboard').style.display = 'block'; document.getElementById('controls-guide').style.display = 'block'; document.getElementById('hotbar-container').style.display = 'flex';
-            document.getElementById('txt-cash').innerText = `$${localPlayer.cash}`;
+            document.getElementById('txt-role').innerText = team === 'AGENT' ? '👮\u200d♂️ AGENTE' : '🏃\u200d♂️ FUGITIVO'; document.getElementById('txt-cash').innerText = `$${localPlayer.cash}`;
             switchSlot(1); ctx.fillStyle = '#020205'; ctx.fillRect(0, 0, canvas.width, canvas.height);
             socket.emit('joinTeam', { role: localPlayer.role, name: localPlayer.name, x: localPlayer.x, y: localPlayer.y });
         }
 
-        socket.on('connect', () => { document.getElementById('net-status').innerText = "✅ Canal de Red Sincronizado en Render"; document.getElementById('net-status').style.color = "#00ffcc"; });
+        socket.on('connect', () => { document.getElementById('net-status').innerText = "✅ Canal Sincronizado"; });
         socket.on('init', (data) => { if(data && data.id) { myId = data.id; Object.keys(data.players).forEach(id => { if(id !== myId) remotePlayers[id] = data.players[id]; }); } });
         socket.on('newPlayer', (player) => { if(player) remotePlayers[player.id] = player; });
         socket.on('playerMoved', (player) => { if(player && remotePlayers[player.id]) remotePlayers[player.id] = player; });
         socket.on('playerDisconnected', (id) => { delete remotePlayers[id]; });
         socket.on('enemyProjectile', (p) => { networkProjectiles.push(p); });
-            function shoot() {
+         function shoot() {
             if (localPlayer.weapon === 'NONE') return;
             let angle = localPlayer.angle;
-            let colorProj = '#ff0055';
-            if (localPlayer.weapon === 'SHOTGUN_SKIN1') colorProj = '#00ffff';
-            if (localPlayer.weapon === 'SHOTGUN_SKIN2') colorProj = '#ffcc00';
-            
-            for(let i = -1; i <= 1; i++) {
-                let spreadAngle = angle + (i * 0.08);
-                let proj = { 
-                    x: localPlayer.x, y: localPlayer.y, 
-                    vx: Math.cos(spreadAngle)*13, vy: Math.sin(spreadAngle)*13, 
-                    life: 35, color: colorProj, size: 4 
-                };
-                localProjectiles.push(proj);
-            }
+            if (localPlayer.weapon === 'TASER') { if (taserCooldown > 0) return; taserCooldown = 450; playTone(900, 0.2); return; }
+            let colorProj = localPlayer.weapon === 'SHOTGUN_SKIN1' ? '#00ffff' : '#ff0055';
+            for(let i = -1; i <= 1; i++) { let spreadAngle = angle + (i * 0.08); let proj = { x: localPlayer.x, y: localPlayer.y, vx: Math.cos(spreadAngle)*13, vy: Math.sin(spreadAngle)*13, life: 35, color: colorProj, size: 4 }; localProjectiles.push(proj); }
             socket.emit('fireProjectile', { x: localPlayer.x, y: localPlayer.y, vx: Math.cos(angle)*13, vy: Math.sin(angle)*13, color: colorProj, size: 4 });
             playTone(220, 0.06);
         }
@@ -308,123 +224,71 @@
             let oldX = localPlayer.x; let oldY = localPlayer.y; let speed = 4.5;
             if (keys['w']) localPlayer.y -= speed; if (keys['s']) localPlayer.y += speed; if (keys['a']) localPlayer.x -= speed; if (keys['d']) localPlayer.x += speed;
             localPlayer.x = Math.max(20, Math.min(MAP_SIZE - 20, localPlayer.x)); localPlayer.y = Math.max(20, Math.min(MAP_SIZE - 20, localPlayer.y));
+            if (taserCooldown > 0) taserCooldown--;
             
             let radius = 15;
-            Object.keys(zones).forEach(k => { 
-                let z = zones[k]; 
-                if (localPlayer.x + radius > z.x && localPlayer.x - radius < z.x + z.w && localPlayer.y + radius > z.y && localPlayer.y - radius < z.y + z.h) { 
-                } 
-            });
-
-            let dx = ball.x - localPlayer.x; let dy = ball.y - localPlayer.y;
-            let dist = Math.sqrt(dx*dx + dy*dy);
-            if (dist < radius + ball.radius) {
-                let angleBall = Math.atan2(dy, dx);
-                ball.x += Math.cos(angleBall) * 6; ball.y += Math.sin(angleBall) * 6;
-            }
+            let dx = ball.x - localPlayer.x; let dy = ball.y - localPlayer.y; let dist = Math.sqrt(dx*dx + dy*dy);
+            if (dist < radius + ball.radius) { let angleBall = Math.atan2(dy, dx); ball.x += Math.cos(angleBall) * 6; ball.y += Math.sin(angleBall) * 6; }
             ball.x = Math.max(1020, Math.min(1780, ball.x)); ball.y = Math.max(120, Math.min(1280, ball.y));
-
-            let sX = canvas.width / 2; let sY = canvas.height / 2; 
-            localPlayer.angle = Math.atan2(mouseY - sY, mouseX - sX);
+            
+            let sX = canvas.width / 2; let sY = canvas.height / 2; localPlayer.angle = Math.atan2(mouseY - sY, mouseX - sX);
             socket.emit('playerUpdate', { name: localPlayer.name, x: localPlayer.x, y: localPlayer.y, angle: localPlayer.angle, role: localPlayer.role, weapon: localPlayer.weapon });
             localProjectiles.forEach((p, idx) => { p.x += p.vx; p.y += p.vy; p.life--; if (p.life <= 0) localProjectiles.splice(idx, 1); });
             networkProjectiles.forEach((p, idx) => { p.x += p.vx; p.y += p.vy; p.life--; if (p.life <= 0) networkProjectiles.splice(idx, 1); });
-            
-            let leadHTML = `<div class="leader-row" style="color:#00ffcc;"><span>> ${localPlayer.name}</span><span>$${localPlayer.cash}</span></div>`;
-            Object.keys(remotePlayers).forEach(id => { let rp = remotePlayers[id]; if(rp.role === 'PENDING') return; leadHTML += `<div class="leader-row" style="color:${rp.role === 'AGENT' ? '#0055ff' : '#ffcc00'};"><span>${rp.name || "Anon"}</span><span>$0</span></div>`; });
-            document.getElementById('count-fugs').innerText = fugs; document.getElementById('count-agents').innerText = agents;
-            document.getElementById('leaderboard-content').innerHTML = leadHTML; document.getElementById('hp-fill').style.width = localPlayer.hp + '%';
         }
-            function draw() {
+
+        function draw() {
             if (!gameStarted) return;
             if (canvas.width !== window.innerWidth || canvas.height !== window.innerHeight) { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             let camX = canvas.width / 2 - localPlayer.x; let camY = canvas.height / 2 - localPlayer.y;
             ctx.save(); ctx.translate(camX, camY);
-            
             ctx.fillStyle = '#020205'; ctx.fillRect(0, 0, MAP_SIZE, MAP_SIZE);
-            
-            if (performanceMode === "HIGH") {
-                ctx.strokeStyle = 'rgba(0, 255, 204, 0.02)'; ctx.lineWidth = 1;
-                for (let x = 0; x < MAP_SIZE; x += 100) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, MAP_SIZE); ctx.stroke(); }
-                for (let y = 0; y < MAP_SIZE; y += 100) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(MAP_SIZE, y); ctx.stroke(); }
-            }
 
             Object.keys(zones).forEach(k => {
-                let z = zones[k]; ctx.fillStyle = z.color; ctx.fillRect(z.x, z.y, z.w, z.h);
-                ctx.strokeStyle = k === 'comisaria' || k === 'tiendaArmas' ? '#0055ff' : '#ff0055'; ctx.lineWidth = 3; ctx.strokeRect(z.x, z.y, z.w, z.h);
-                
-                if (k === 'celdas') {
-                    ctx.strokeStyle = 'rgba(255, 0, 85, 0.2)'; ctx.lineWidth = 2;
-                    for (let cy = z.y + 200; cy < z.y + z.h; cy += 200) { ctx.beginPath(); ctx.moveTo(z.x, cy); ctx.lineTo(z.x + z.w, cy); ctx.stroke(); }
+                let z = zones[k]; if (k === 'celdas') { ctx.fillStyle = '#0d0a17'; } else if (k === 'patioFutbol') { ctx.fillStyle = '#06170c'; } else { ctx.fillStyle = '#08080d'; }
+                ctx.fillRect(z.x, z.y, z.w, z.h);
+                if (performanceMode === "HIGH") {
+                    ctx.strokeStyle = k === 'comisaria' ? 'rgba(0, 85, 255, 0.12)' : 'rgba(255, 0, 85, 0.12)'; ctx.lineWidth = 2;
+                    for (let sx = z.x; sx < z.x + z.w; sx += 40) { ctx.beginPath(); ctx.moveTo(sx, z.y); ctx.lineTo(sx, z.y + z.h); ctx.stroke(); }
                 }
-                
+                ctx.strokeStyle = k === 'comisaria' ? '#0055ff' : '#ff0055'; if (k === 'armeria' || k === 'tiendaArmas') ctx.strokeStyle = '#00ffcc';
+                ctx.lineWidth = 3; ctx.strokeRect(z.x, z.y, z.w, z.h);
                 if (k === 'patioFutbol') {
-                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)'; ctx.lineWidth = 2;
-                    ctx.strokeRect(z.x + 20, z.y + 20, z.w - 40, z.h - 40);
+                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)'; ctx.lineWidth = 2; ctx.strokeRect(z.x + 20, z.y + 20, z.w - 40, z.h - 40);
                     ctx.beginPath(); ctx.moveTo(z.x, z.y + z.h/2); ctx.lineTo(z.x + z.w, z.y + z.h/2); ctx.stroke();
                     ctx.beginPath(); ctx.arc(z.x + z.w/2, z.y + z.h/2, 70, 0, Math.PI*2); ctx.stroke();
-                    
-                    ctx.fillStyle = '#ffaa00'; ctx.fillRect(porteriaArriba.x, porteriaArriba.y, porteriaArriba.w, porteriaArriba.h);
-                    ctx.fillRect(porteriaAbajo.x, porteriaAbajo.y, porteriaAbajo.w, porteriaAbajo.h);
+                    ctx.fillStyle = '#ffaa00'; ctx.fillRect(porteriaArriba.x, porteriaArriba.y, porteriaArriba.w, porteriaArriba.h); ctx.fillRect(porteriaAbajo.x, porteriaAbajo.y, porteriaAbajo.w, porteriaAbajo.h);
                 }
-
                 ctx.save(); ctx.translate(z.x + 15, z.y + 25); ctx.transform(1, 0, -0.15, 1, 0, 0); ctx.fillStyle = '#00ffcc'; ctx.font = 'bold 11px monospace'; ctx.fillText(`:: ${z.name.toUpperCase()} ::`, 0, 0); ctx.restore();
             });
 
-            ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI*2); ctx.fill();
-            ctx.strokeStyle = '#000000'; ctx.lineWidth = 2; ctx.stroke();
-            ctx.fillStyle = '#000'; ctx.font = 'bold 10px sans-serif'; ctx.fillText("⚽", ball.x - 7, ball.y + 4);
-
+            ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI*2); ctx.fill(); ctx.strokeStyle = '#000000'; ctx.lineWidth = 2; ctx.stroke();
             localProjectiles.forEach(p => { ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI*2); ctx.fill(); });
             networkProjectiles.forEach(p => { ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI*2); ctx.fill(); });
 
-            Object.keys(remotePlayers).forEach(id => {
-                let p = remotePlayers[id]; if (p.role === 'PENDING') return;
-                ctx.fillStyle = '#fff'; ctx.font = '10px monospace'; ctx.fillText(p.name, p.x - 20, p.y - 25);
-                ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.angle); ctx.fillStyle = p.role === 'AGENT' ? '#0055ff' : '#ffcc00'; ctx.beginPath(); ctx.arc(0, 0, 15, 0, Math.PI*2); ctx.fill(); ctx.restore();
-            });
-
             ctx.save(); ctx.translate(localPlayer.x, localPlayer.y); ctx.rotate(localPlayer.angle);
+            let isFlipped = Math.abs(localPlayer.angle) > Math.PI / 2; let sideFactor = isFlipped ? -1 : 1;
             ctx.fillStyle = localPlayer.role === 'AGENT' ? '#0055ff' : '#ffcc00'; ctx.beginPath(); ctx.arc(0, 0, 15, 0, Math.PI*2); ctx.fill(); ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.stroke();
             
-            if(localPlayer.weapon !== 'NONE') {
-                if(localPlayer.weapon === 'SHOTGUN_BASE') ctx.fillStyle = '#8b5a2b';
-                if(localPlayer.weapon === 'SHOTGUN_SKIN1') ctx.fillStyle = '#001144';
-                if(localPlayer.weapon === 'SHOTGUN_SKIN2') ctx.fillStyle = '#220000';
-                ctx.fillRect(10, -3, 22, 6);
-                
-                ctx.fillStyle = '#7a7a7a'; ctx.fillRect(32, -2, 16, 4);
-                
-                if(localPlayer.weapon === 'SHOTGUN_SKIN1') {
-                    ctx.fillStyle = '#ffffff';
-                    ctx.fillRect(15, -2, 2, 2); ctx.fillRect(25, 1, 2, 2); ctx.fillRect(35, -1, 2, 2);
-                }
-                if(localPlayer.weapon === 'SHOTGUN_SKIN2') {
-                    ctx.fillStyle = '#ff3300';
-                    ctx.fillRect(16, -2, 12, 4); ctx.fillStyle = '#ffaa00'; ctx.fillRect(20, -1, 6, 2);
-                }
-
-                ctx.fillStyle = '#ff8888';
-                ctx.beginPath(); ctx.arc(14, -6, 4, 0, Math.PI*2); ctx.fill();
-                ctx.beginPath(); ctx.arc(28, 6, 4, 0, Math.PI*2); ctx.fill();
+            if(localPlayer.weapon.includes('SHOTGUN')) {
+                ctx.fillStyle = localPlayer.weapon === 'SHOTGUN_BASE' ? '#8b5a2b' : '#001144'; ctx.fillRect(10, -3 * sideFactor, 22, 6 * sideFactor); ctx.fillStyle = '#7a7a7a'; ctx.fillRect(32, -2 * sideFactor, 16, 4 * sideFactor);
+                ctx.fillStyle = '#ff8888'; ctx.beginPath(); ctx.arc(14, -6 * sideFactor, 4, 0, Math.PI*2); ctx.fill(); ctx.beginPath(); ctx.arc(28, 6 * sideFactor, 4, 0, Math.PI*2); ctx.fill();
             }
-            ctx.restore();
-            ctx.restore();
+            if(localPlayer.weapon === 'TASER' && taserCooldown > 420) {
+                ctx.restore(); ctx.save(); ctx.strokeStyle = '#ffff00'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(localPlayer.x, localPlayer.y);
+                let targetX = localPlayer.x + Math.cos(localPlayer.angle) * 220; let targetY = localPlayer.y + Math.sin(localPlayer.angle) * 220;
+                for(let i = 1; i <= 4; i++) { ctx.lineTo(localPlayer.x + (targetX - localPlayer.x)*(i/4) + (Math.random()-0.5)*20, localPlayer.y + (targetY - localPlayer.y)*(i/4) + (Math.random()-0.5)*20); }
+                ctx.stroke(); ctx.restore(); ctx.save(); ctx.translate(localPlayer.x, localPlayer.y); ctx.rotate(localPlayer.angle);
+            }
+            ctx.restore(); ctx.restore();
             
             if(localPlayer.weapon !== 'NONE') {
-                ctx.save();
-                ctx.strokeStyle = '#ff0055'; ctx.lineWidth = 1.5;
-                ctx.beginPath(); ctx.arc(mouseX, mouseY, 12, 0, Math.PI*2); ctx.stroke();
-                ctx.fillStyle = '#ff0055'; ctx.beginPath(); ctx.arc(mouseX, mouseY, 2, 0, Math.PI*2); ctx.fill();
-                ctx.beginPath(); ctx.moveTo(mouseX - 20, mouseY); ctx.lineTo(mouseX - 6, mouseY); ctx.stroke();
-                ctx.beginPath(); ctx.moveTo(mouseX + 6, mouseY); ctx.lineTo(mouseX + 20, mouseY); ctx.stroke();
-                ctx.beginPath(); ctx.moveTo(mouseX, mouseY - 20); ctx.lineTo(mouseX, mouseY - 6); ctx.stroke();
-                ctx.beginPath(); ctx.moveTo(mouseX, mouseY + 6); ctx.lineTo(mouseX, mouseY + 20); ctx.stroke();
-                ctx.restore();
+                ctx.save(); ctx.strokeStyle = '#ff0055'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(mouseX, mouseY, 12, 0, Math.PI*2); ctx.stroke(); ctx.fillStyle = '#ff0055'; ctx.beginPath(); ctx.arc(mouseX, mouseY, 2, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.moveTo(mouseX - 20, mouseY); ctx.lineTo(mouseX - 6, mouseY); ctx.stroke(); ctx.beginPath(); ctx.moveTo(mouseX + 6, mouseY); ctx.lineTo(mouseX + 20, mouseY); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(mouseX, mouseY - 20); ctx.lineTo(mouseX, mouseY - 6); ctx.stroke(); ctx.beginPath(); ctx.moveTo(mouseX, mouseY + 6); ctx.lineTo(mouseX, mouseY + 20); ctx.stroke(); ctx.restore();
             }
         }
-
         function mainLoop() { update(); draw(); requestAnimationFrame(mainLoop); }
         mainLoop();
     </script>
